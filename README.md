@@ -288,6 +288,8 @@ beeweave-query @work what do I know about deployment rollbacks?
 
 The `@name` override applies only to that request and does not change the
 default vault.
+All supported agents can use this syntax, including Claude Code, Cursor, Windsurf, Codex, Gemini,
+Kiro, Hermes, OpenClaw, Pi, Copilot CLI, and generic `AGENTS.md` agents.
 
 ## 🧩 Optional Features
 
