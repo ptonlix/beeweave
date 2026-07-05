@@ -41,6 +41,7 @@ graph = ["leidenalg>=0.10", "igraph>=0.11"]
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
+docs = ["mkdocs-material>=9.6,<9.7", "mkdocs-static-i18n>=1.3,<2"]
 
 [project.urls]
 Homepage = "https://github.com/ptonlix/beeweave"

@@ -9,6 +9,7 @@ tmp/
 # Python build artifacts (pyproject.toml / `python -m build`)
 /dist/
 /build/
+/site/
 *.egg-info/
 
 # Agent skill symlinks (created by setup.sh) — these are just pointers to .skills/

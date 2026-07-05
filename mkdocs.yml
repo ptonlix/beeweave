@@ -1,0 +1,65 @@
+site_name: BeeWeave
+site_description: Agent-native Creation Workbench
+site_url: https://ptonlix.github.io/beeweave/
+repo_url: https://github.com/ptonlix/beeweave
+repo_name: ptonlix/beeweave
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: folder
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+          theme:
+            language: en
+          nav:
+            - Home: index.md
+            - Quick Start: quickstart.md
+            - Architecture: architecture.md
+            - Data Flywheel: flywheel.md
+            - Agents: agents.md
+            - Skills: skills.md
+            - CLI: cli.md
+            - Development: development.md
+        - locale: zh
+          name: 中文
+          build: true
+          site_description: Agent 原生的创作工作台
+          theme:
+            language: zh
+          nav:
+            - 首页: index.md
+            - 快速开始: quickstart.md
+            - 架构: architecture.md
+            - 数据飞轮: flywheel.md
+            - Agent: agents.md
+            - 技能: skills.md
+            - CLI: cli.md
+            - 开发: development.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
