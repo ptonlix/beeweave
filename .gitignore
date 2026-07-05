@@ -1,0 +1,28 @@
+.env
+.DS_Store
+.venv/
+*.pyc
+__pycache__/
+tmp/
+
+# Python build artifacts (pyproject.toml / `python -m build`)
+/dist/
+/build/
+*.egg-info/
+
+# Agent skill symlinks (created by setup.sh) — these are just pointers to .skills/
+# We track them so cloners get the symlinks too, but if your git doesn't
+# preserve symlinks, run `bash setup.sh` after cloning.
+
+.serena/
+openspec/
+
+# Obsidian local workspace/cache files inside the monorepo vault
+/vault/.obsidian/workspace.json
+/vault/.obsidian/workspace-mobile.json
+/vault/.obsidian/cache/
+/vault/.trash/
+
+# Local render/output byproducts; keep source drafts in workbench tracked
+/workbench/exports/*
+!/workbench/exports/.gitkeep

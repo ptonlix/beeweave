@@ -1,0 +1,99 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "beeweave"
+dynamic = ["version"]
+description = "BeeWeave is an agent-native knowledge workbench for capture, creation, knowledge weaving, and compiled vault output."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "ptonlix" }]
+keywords = [
+  "beeweave",
+  "knowledge-workbench",
+  "knowledge-weaving",
+  "knowledge-base",
+  "content-creation",
+  "llm",
+  "agent-skills",
+  "data-flywheel",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Documentation",
+  "Topic :: Text Processing :: Markup :: Markdown",
+  "Topic :: Utilities",
+]
+dependencies = ["InquirerPy>=0.3.4"]
+
+[project.optional-dependencies]
+# Higher-fidelity AST extraction (tree-sitter parses real ASTs; regex is the default fallback).
+ast = ["tree-sitter>=0.21", "tree-sitter-languages>=1.10"]
+# Higher-fidelity community detection (Leiden algorithm; greedy label propagation is the default fallback).
+graph = ["leidenalg>=0.10", "igraph>=0.11"]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[project.urls]
+Homepage = "https://github.com/ptonlix/beeweave"
+Repository = "https://github.com/ptonlix/beeweave"
+Issues = "https://github.com/ptonlix/beeweave/issues"
+
+[project.scripts]
+bwe = "beeweave.cli:main"
+
+# Version is derived from the git tag (CalVer, e.g. v2026.05.2 -> 2026.5.2),
+# matching the repo's release tags. Tagging a release is the version bump.
+[tool.hatch.version]
+source = "vcs"
+
+# ── Build configuration ──────────────────────────────────────────────────────
+# The Python package is just the thin CLI in beeweave/. The actual product
+# is the markdown skill content under .skills/ plus the agent bootstrap files.
+# We force-include those into the wheel under beeweave/_data/ so the
+# installed package is self-contained and the CLI can install skills without a
+# cloned repo. Source paths stay at the repo root (single source of truth).
+
+[tool.hatch.build.targets.wheel]
+packages = ["beeweave"]
+
+[tool.hatch.build.targets.wheel.force-include]
+".skills" = "beeweave/_data/skills"
+".env.example" = "beeweave/_data/.env.example"
+"bootstrap/AGENTS.md" = "beeweave/_data/bootstrap/AGENTS.md"
+"bootstrap/cursor/rules/beeweave.mdc" = "beeweave/_data/bootstrap/cursor/rules/beeweave.mdc"
+"bootstrap/windsurf/rules/beeweave.md" = "beeweave/_data/bootstrap/windsurf/rules/beeweave.md"
+"bootstrap/kiro/steering/beeweave.md" = "beeweave/_data/bootstrap/kiro/steering/beeweave.md"
+"bootstrap/agent/rules/beeweave.md" = "beeweave/_data/bootstrap/agent/rules/beeweave.md"
+"bootstrap/agent/workflows/beeweave.md" = "beeweave/_data/bootstrap/agent/workflows/beeweave.md"
+"bootstrap/claude/hooks/beeweave-stop-capture.sh" = "beeweave/_data/bootstrap/claude/hooks/beeweave-stop-capture.sh"
+"bootstrap/claude/settings.stop-hook.json" = "beeweave/_data/bootstrap/claude/settings.stop-hook.json"
+".github/copilot-instructions.md" = "beeweave/_data/bootstrap/github/copilot-instructions.md"
+
+[tool.hatch.build.targets.sdist]
+# Prune build noise and the committed agent symlink mirrors (the CLI
+# regenerates those; left in, hatchling's VCS walker treats them as the
+# canonical path for each skill and drops the real .skills/<name> files).
+exclude = [
+  "/.claude",
+  "/.cursor/skills",
+  "/.windsurf/skills",
+  "/.agents/skills",
+  "/.pi/skills",
+  "/.kiro/skills",
+  "/dist",
+  "/build",
+]
+
+# Force the real .skills/ tree into the sdist regardless of the VCS walker, so
+# the wheel (built from the sdist) can in turn force-include it under _data/.
+[tool.hatch.build.targets.sdist.force-include]
+".skills" = ".skills"
