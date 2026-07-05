@@ -2,12 +2,13 @@
 
 BeeWeave is an agent-native creation workbench for building a creative data
 flywheel: collect source material, create with agents, distill durable
-knowledge, reuse that context, and collect better material for the next loop.
+knowledge, reuse that context, collect better material, and create the next
+piece.
 
 ![BeeWeave overview](assets/beeweave.png)
 
 ```text
-collect -> create -> distill -> reuse context -> collect better
+collect -> create -> distill -> reuse context -> collect better material -> create the next piece
 ```
 
 ## What BeeWeave Gives You
@@ -30,9 +31,5 @@ material and finished work into a reusable context layer.
 - Review supported agent targets in [Agents](agents.md).
 
 ## Documentation Site
-
-The public wiki is published at
-<https://ptonlix.github.io/beeweave/>. GitHub Pages should use the `gh-pages`
-branch and `/root` as the publishing source.
 
 ![Workbench to vault flow](assets/beeweave-workbench-vault-flow.png)

@@ -3,7 +3,7 @@
 BeeWeave is designed as a loop, not a one-way archive.
 
 ```text
-collect -> create -> distill -> reuse context -> collect better
+collect -> create -> distill -> reuse context -> collect better material -> create the next piece
 ```
 
 ## 1. Collect
@@ -44,9 +44,10 @@ know:
 /beeweave-query what do I know about MCP security?
 ```
 
-## 5. Collect Better
+## 5. Collect Better and Create the Next Piece
 
 Queries reveal gaps, drafts expose weak claims, and digests surface emerging
-themes. Use those signals to decide what to collect next.
+themes. Use those signals to decide what to collect next and what to create
+from it.
 
 ![Data flywheel loop](assets/data-flywheel-loop.png)
