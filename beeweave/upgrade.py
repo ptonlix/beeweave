@@ -130,13 +130,17 @@ def detect_install_method(
     pkg = str(Path(package_file).resolve())
     prefix_value = str(Path(prefix or sys.prefix).resolve())
     haystack = f"{exe}\n{pkg}\n{prefix_value}"
+    pkg_path = Path(pkg)
+
+    # Editable installs executed through a uv tool environment still have a uv
+    # prefix, but package_file resolves back to the source checkout. Treat those
+    # as source installs so `bwe upgrade` does not claim success after `uv tool
+    # upgrade` leaves the editable checkout unchanged.
+    if _has_source_checkout_marker(pkg_path):
+        return InstallMethod("source", exe, pkg, "source checkout or editable install")
 
     if ".local/share/uv/tools/beeweave" in haystack or "/uv/tools/beeweave" in haystack:
         return InstallMethod("uv_tool", exe, pkg, "uv tool environment")
-
-    pkg_path = Path(pkg)
-    if _has_source_checkout_marker(pkg_path):
-        return InstallMethod("source", exe, pkg, "source checkout or editable install")
 
     if "site-packages" in pkg or "dist-packages" in pkg:
         return InstallMethod("pip", exe, pkg, "site-packages install")

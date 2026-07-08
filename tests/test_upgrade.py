@@ -35,6 +35,22 @@ def test_detect_install_method_uv_tool(tmp_path):
     assert upgrade.upgrade_command(method) == ["uv", "tool", "upgrade", "beeweave"]
 
 
+def test_detect_install_method_uv_tool_editable_source(tmp_path):
+    repo = tmp_path / "beeweave"
+    (repo / ".git").mkdir(parents=True)
+    (repo / "pyproject.toml").write_text("[project]\nname='beeweave'\n", encoding="utf-8")
+    package_file = _method_path(repo, "beeweave", "cli.py")
+
+    method = upgrade.detect_install_method(
+        package_file=package_file,
+        executable=str(tmp_path / ".local" / "share" / "uv" / "tools" / "beeweave" / "bin" / "python"),
+        prefix=str(tmp_path / ".local" / "share" / "uv" / "tools" / "beeweave"),
+    )
+
+    assert method.kind == "source"
+    assert upgrade.upgrade_command(method) is None
+
+
 def test_detect_install_method_source_checkout(tmp_path):
     repo = tmp_path / "beeweave"
     (repo / ".git").mkdir(parents=True)
