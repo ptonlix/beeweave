@@ -23,9 +23,12 @@ BeeWeave 是一个循环，而不是单向归档。
 当作品发布或决策稳定后，把高信号结果 ingest 到 vault：
 
 ```text
+/beeweave-article-publisher workbench/articles/drafts/my-article.md
 /beeweave-ingest workbench/articles/published
 /beeweave-update
 ```
+
+已完成的文章草稿优先使用 `beeweave-article-publisher`：它会把单篇草稿移动到 `workbench/articles/published/`，标记为已发布，并把这篇已发布文件 ingest 到 wiki。文件夹或非文章素材仍可直接使用 `beeweave-ingest`。
 
 Vault 应保存长期概念、实体、引用、综合笔记、项目决策和互相关联的 Markdown 页面。
 

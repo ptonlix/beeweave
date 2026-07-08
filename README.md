@@ -218,12 +218,13 @@ material into a concrete output while preserving your point of view:
 ```text
 Use beeweave-article-writer to draft a long-form article from these notes.
 Use beeweave-social-writer to turn this finding into a thread.
+Use beeweave-article-publisher to publish a finished draft and ingest it into the wiki.
 ```
 
 Creation is where the raw material becomes useful. Drafts live under
 `workbench/articles/drafts/`, source material stays in `workbench/library/` or
 `workbench/inbox/`, and finished pieces can move to
-`workbench/articles/published/`.
+`workbench/articles/published/` through the publisher skill.
 
 ### 3. Distill Durable Knowledge
 
@@ -233,13 +234,16 @@ you actually decided, argued, and shipped instead of every rough note that
 passed through the inbox:
 
 ```text
+/beeweave-article-publisher workbench/articles/drafts/my-article.md
 /beeweave-ingest workbench/articles/published
 /beeweave-update
 /beeweave-synthesize
 ```
 
-`beeweave-ingest` reads finished articles or selected source material and
-distills the reusable concepts, claims, references, and relationships.
+`beeweave-article-publisher` moves a finished draft to published status and
+uses `beeweave-ingest` on that file. `beeweave-ingest` can also read finished
+articles or selected source material directly and distill the reusable concepts,
+claims, references, and relationships.
 `beeweave-update` is useful when the creation happened inside another project
 and you want to preserve the durable decisions or lessons from that work.
 `beeweave-synthesize` runs after the vault has grown, finding cross-cutting

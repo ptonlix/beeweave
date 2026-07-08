@@ -70,6 +70,7 @@ LOCAL_WIKI_SKILL_DESCRIPTIONS = {
     "beeweave-vault-skill-factory": "turn vault practices into skills",
 }
 WORKBENCH_SKILL_DESCRIPTIONS = {
+    "beeweave-article-publisher": "publish workbench drafts and ingest finished articles into the wiki",
     "beeweave-article-writer": "long-form articles, blog posts, essays, and opinion pieces",
     "beeweave-social-writer": "X/Twitter posts, threads, short takes, and social copy",
 }

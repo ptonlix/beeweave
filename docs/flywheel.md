@@ -28,9 +28,15 @@ After work is published or a decision becomes stable, ingest the high-signal
 output into the vault:
 
 ```text
+/beeweave-article-publisher workbench/articles/drafts/my-article.md
 /beeweave-ingest workbench/articles/published
 /beeweave-update
 ```
+
+Use `beeweave-article-publisher` for finished article drafts: it moves one
+draft to `workbench/articles/published/`, marks it published, and ingests that
+file into the wiki. Use `beeweave-ingest` directly for folders or non-article
+source material.
 
 The vault should hold durable concepts, entities, references, synthesis notes,
 project decisions, and linked Markdown pages.

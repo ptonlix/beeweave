@@ -66,6 +66,7 @@ Global skills
 
 Workbench/project-local skills:
   beeweave-article-writer — long-form articles, blog posts, essays, and opinion pieces
+  beeweave-article-publisher — publish drafts and ingest finished pieces into the wiki
   beeweave-social-writer  — X/Twitter posts, threads, short takes, and social copy
 ```
 
@@ -122,6 +123,7 @@ project-locally with the full skill set, not globally.
 | Skill | What it does |
 |---|---|
 | `beeweave-article-writer` | Long-form articles, blog posts, essays, and opinion pieces |
+| `beeweave-article-publisher` | Move finished drafts to `workbench/articles/published/`, mark them published, and ingest them into the wiki |
 | `beeweave-social-writer` | X/Twitter posts, threads, short takes, and social copy |
 
 ## Why Most Skills Stay Local
