@@ -613,9 +613,14 @@ project output while keeping the raw sources nearby.</p>
 <h2 id="3-distill">3. Distill<a class="headerlink" href="#3-distill" title="Permanent link">&para;</a></h2>
 <p>After work is published or a decision becomes stable, ingest the high-signal
 output into the vault:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>/beeweave-ingest workbench/articles/published
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>/beeweave-update
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>/beeweave-article-publisher workbench/articles/drafts/my-article.md
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>/beeweave-ingest workbench/articles/published
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>/beeweave-update
 </code></pre></div>
+<p>Use <code>beeweave-article-publisher</code> for finished article drafts: it moves one
+draft to <code>workbench/articles/published/</code>, marks it published, and ingests that
+file into the wiki. Use <code>beeweave-ingest</code> directly for folders or non-article
+source material.</p>
 <p>The vault should hold durable concepts, entities, references, synthesis notes,
 project decisions, and linked Markdown pages.</p>
 <h2 id="4-reuse-context">4. Reuse Context<a class="headerlink" href="#4-reuse-context" title="Permanent link">&para;</a></h2>

@@ -437,9 +437,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#named-vault-routing" class="md-nav__link">
+  <a href="#named-profile-routing" class="md-nav__link">
     <span class="md-ellipsis">
-      Named Vault Routing
+      Named Profile Routing
     </span>
   </a>
   
@@ -551,9 +551,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#named-vault-routing" class="md-nav__link">
+  <a href="#named-profile-routing" class="md-nav__link">
     <span class="md-ellipsis">
-      Named Vault Routing
+      Named Profile Routing
     </span>
   </a>
   
@@ -605,13 +605,19 @@ portable and useful across projects.</p>
 <p>The full BeeWeave skill set is installed project-locally for selected agents.
 This keeps unrelated projects clean while giving the BeeWeave workspace the
 complete workflow surface.</p>
-<h2 id="named-vault-routing">Named Vault Routing<a class="headerlink" href="#named-vault-routing" title="Permanent link">&para;</a></h2>
-<p>Create named configs such as <code>~/.beeweave/config.work</code>, then route one request
-with <code>@name</code>:</p>
+<h2 id="named-profile-routing">Named Profile Routing<a class="headerlink" href="#named-profile-routing" title="Permanent link">&para;</a></h2>
+<p>Create named configs such as <code>~/.beeweave/config.work</code>. Each config is a full
+BeeWeave profile: vault path, workbench path, QMD settings, and tool-specific
+paths. Route one request with <code>@name</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>beeweave-query @work what do I know about deployment rollbacks?
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>@research update my BeeWeave vault
 </code></pre></div>
 <p>The override applies only to that request.</p>
+<p>To make a named profile the default for future requests without <code>@name</code>, run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+</code></pre></div>
+<p>BeeWeave backs up the existing <code>~/.beeweave/config</code> before copying
+<code>~/.beeweave/config.work</code> into place.</p>
 <p><img alt="Skills scope map" src="../assets/skills-scope-map.png" /></p>
 
 

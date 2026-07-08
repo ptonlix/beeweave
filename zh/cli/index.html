@@ -582,9 +582,10 @@
 <p>BeeWeave 提供 <code>bwe</code> 命令。</p>
 <h2 id="_1">核心命令<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bwe setup             安装 skills 并写入配置
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bwe uninstall         移除 BeeWeave skills 和配置
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bwe list              列出内置 skills
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe info              查看安装路径、版本和配置
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bwe profile           管理 BeeWeave profile 配置文件
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bwe uninstall         移除 BeeWeave skills 和配置
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe list              列出内置 skills
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bwe info              查看安装路径、版本和配置
 </code></pre></div>
 <h2 id="_2">知识与图谱辅助命令<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bwe graph-query       查询 vault wikilink index
@@ -600,9 +601,13 @@
 <h2 id="setup">Setup 示例<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--agents<span class="w"> </span>claude,codex
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--global-extra<span class="w"> </span>beeweave-capture
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bwe<span class="w"> </span>info
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--profile<span class="w"> </span>work
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>info
 </code></pre></div>
 <p>请在你希望创建运行时 <code>vault/</code> 和 <code>workbench/</code> 的工作区里运行 <code>bwe setup</code>。</p>
+<p>默认情况下，setup 写入 <code>~/.beeweave/config</code>。使用 <code>--profile NAME</code> 会写入命名配置 <code>~/.beeweave/config.NAME</code>。setup 不负责激活命名 profile，也不会把 <code>~/.beeweave/config</code> 软链接到其它文件；在 Agent 请求里使用 <code>@name</code> 来指定命名 profile。交互式 setup 里可以选择 <code>new profile...</code>，然后输入新的 profile 名称。</p>
+<p>如果需要把某个命名 profile 明确设为默认配置，使用 <code>bwe profile set-default NAME</code>。它会把 <code>~/.beeweave/config.NAME</code> 复制到 <code>~/.beeweave/config</code>；如果默认配置已经存在，会先创建时间戳备份，并要求输入 <code>YES</code> 后才覆盖。</p>
 
 
 

@@ -437,9 +437,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#vault" class="md-nav__link">
+  <a href="#profile" class="md-nav__link">
     <span class="md-ellipsis">
-      命名 Vault 路由
+      命名 Profile 路由
     </span>
   </a>
   
@@ -551,9 +551,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#vault" class="md-nav__link">
+  <a href="#profile" class="md-nav__link">
     <span class="md-ellipsis">
-      命名 Vault 路由
+      命名 Profile 路由
     </span>
   </a>
   
@@ -601,12 +601,17 @@
 </ul>
 <h2 id="_4">项目本地技能<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>完整 BeeWeave skill 集会安装到你选择的项目本地 Agent 目录中。这样其它项目保持干净，而 BeeWeave 工作区拥有完整工作流能力。</p>
-<h2 id="vault">命名 Vault 路由<a class="headerlink" href="#vault" title="Permanent link">&para;</a></h2>
-<p>可以创建 <code>~/.beeweave/config.work</code> 这样的命名配置，然后只为单次请求使用 <code>@name</code>：</p>
+<h2 id="profile">命名 Profile 路由<a class="headerlink" href="#profile" title="Permanent link">&para;</a></h2>
+<p>可以创建 <code>~/.beeweave/config.work</code> 这样的命名配置。每个配置都是一套完整的 BeeWeave profile，包括 vault 路径、workbench 路径、QMD 设置和工具专用路径。然后只为单次请求使用 <code>@name</code>：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>beeweave-query @work what do I know about deployment rollbacks?
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>@research update my BeeWeave vault
 </code></pre></div>
 <p>该覆盖只影响当前请求。</p>
+<p>如果要把某个命名 profile 设为之后不带 <code>@name</code> 时使用的默认配置，运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+</code></pre></div>
+<p>BeeWeave 会先备份已有的 <code>~/.beeweave/config</code>，再把
+<code>~/.beeweave/config.work</code> 复制过去。</p>
 <p><img alt="技能作用范围" src="../../assets/skills-scope-map.png" /></p>
 
 

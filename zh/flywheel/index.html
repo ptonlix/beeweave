@@ -608,9 +608,11 @@
 <p>把 workbench 当作草稿台。写作和 workbench skills 可以把素材转化为文章、短内容、研究笔记、规格说明或项目产出，同时保留原始来源。</p>
 <h2 id="3">3. 沉淀<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
 <p>当作品发布或决策稳定后，把高信号结果 ingest 到 vault：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>/beeweave-ingest workbench/articles/published
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>/beeweave-update
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>/beeweave-article-publisher workbench/articles/drafts/my-article.md
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>/beeweave-ingest workbench/articles/published
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>/beeweave-update
 </code></pre></div>
+<p>已完成的文章草稿优先使用 <code>beeweave-article-publisher</code>：它会把单篇草稿移动到 <code>workbench/articles/published/</code>，标记为已发布，并把这篇已发布文件 ingest 到 wiki。文件夹或非文章素材仍可直接使用 <code>beeweave-ingest</code>。</p>
 <p>Vault 应保存长期概念、实体、引用、综合笔记、项目决策和互相关联的 Markdown 页面。</p>
 <h2 id="4">4. 复用上下文<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
 <p>下一次任务开始前，先查询 vault，让 Agent 从你已经知道的内容出发：</p>

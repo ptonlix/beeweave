@@ -582,9 +582,10 @@
 <p>BeeWeave exposes the <code>bwe</code> command.</p>
 <h2 id="core-commands">Core Commands<a class="headerlink" href="#core-commands" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bwe setup             install skills into agents and write config
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bwe uninstall         remove BeeWeave skills and config
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bwe list              list bundled skills
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe info              show install paths, version, and config
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bwe profile           manage BeeWeave profile config files
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bwe uninstall         remove BeeWeave skills and config
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe list              list bundled skills
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bwe info              show install paths, version, and config
 </code></pre></div>
 <h2 id="knowledge-and-graph-helpers">Knowledge and Graph Helpers<a class="headerlink" href="#knowledge-and-graph-helpers" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bwe graph-query       query the vault wikilink index
@@ -600,10 +601,21 @@
 <h2 id="setup-examples">Setup Examples<a class="headerlink" href="#setup-examples" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--agents<span class="w"> </span>claude,codex
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--global-extra<span class="w"> </span>beeweave-capture
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bwe<span class="w"> </span>info
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--profile<span class="w"> </span>work
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>info
 </code></pre></div>
 <p>Run <code>bwe setup</code> from the workspace where you want runtime <code>vault/</code> and
 <code>workbench/</code> folders to be created.</p>
+<p>By default, setup writes <code>~/.beeweave/config</code>. Use <code>--profile NAME</code> to write a
+named profile at <code>~/.beeweave/config.NAME</code>. Setup does not activate named
+profiles or repoint <code>~/.beeweave/config</code>; use <code>@name</code> in agent requests to
+target a named profile. In interactive setup, choose <code>new profile...</code> to enter
+a new profile name without leaving setup.</p>
+<p>Use <code>bwe profile set-default NAME</code> to intentionally copy
+<code>~/.beeweave/config.NAME</code> to <code>~/.beeweave/config</code>. If a default config already
+exists, BeeWeave creates a timestamped backup and requires <code>YES</code> before
+overwriting it.</p>
 
 
 
