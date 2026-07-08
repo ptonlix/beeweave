@@ -79,7 +79,7 @@ Scan active pages and `workbench/inbox/` for unresolved work:
 
 - **Drafts**: pages with `lifecycle: draft` or `lifecycle: stub`
 - **Ambiguous claims**: count `^[ambiguous]` markers across all active pages (don't list every one — just the count and which pages have the most)
-- **Inbox pending**: count files in `$BEEWEAVE_INBOX_DIR/captures/` and `$BEEWEAVE_INBOX_DIR/web/` (anything here hasn't been promoted)
+- **Inbox pending**: count files in `$BEEWEAVE_WORKBENCH_PATH/inbox/captures/` and `$BEEWEAVE_WORKBENCH_PATH/inbox/web/` (anything here hasn't been promoted)
 - **Taxonomy gaps**: tags from Step 2 that aren't in `_meta/taxonomy.md`
 
 ## Step 5: Choose Recommended Re-reads

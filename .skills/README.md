@@ -88,7 +88,7 @@ full set.
 | `beeweave-memory-bridge` | Browse and diff wiki knowledge by source tool, such as Claude vs Codex vs Hermes | Optional extra |
 | `beeweave-core` | Explain the underlying LLM Wiki pattern, vault schema, frontmatter, relationships, retrieval primitives, and config resolution protocol | Project-local |
 | `beeweave-setup` | Initialize vault structure, special files, Obsidian config, `.env`, and optional capture hooks | Project-local |
-| `beeweave-switch` | Manage named vault profiles under `~/.beeweave/config.NAME` and switch the active default vault | Project-local |
+| `beeweave-switch` | Manage named BeeWeave profiles under `~/.beeweave/config.NAME` and switch the active default profile | Project-local |
 | `beeweave-lint` | Audit vault health: orphan pages, broken links, missing frontmatter, missing summaries, stale content, contradictions, and optional consolidation | Project-local |
 | `beeweave-cross-linker` | Scan the vault and insert missing `[[wikilinks]]` to strengthen the knowledge graph | Project-local |
 | `beeweave-tag-taxonomy` | Audit and normalize tags using the controlled vocabulary in `_meta/taxonomy.md` | Project-local |

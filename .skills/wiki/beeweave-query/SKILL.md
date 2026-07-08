@@ -9,7 +9,7 @@ description: >
   transitively" question — answered by walking typed edges across multiple hops. Works from any project.
   Includes an index-only fast mode triggered by "quick answer", "just scan", "don't read the pages",
   "fast lookup" — returns answers from page summaries and frontmatter without reading page bodies.
-  Accepts inline named-vault routing like "beeweave-query @work what do I know about X" via the shared
+  Accepts inline named-profile routing like "beeweave-query @work what do I know about X" via the shared
   Config Resolution Protocol.
 ---
 

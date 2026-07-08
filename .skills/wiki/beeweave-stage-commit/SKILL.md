@@ -117,7 +117,7 @@ If `--list` flag is set, stop after printing the inventory (Step 1).
 
 ### Rejecting a file
 
-Move it to `$BEEWEAVE_INBOX_DIR/rejected/` for manual editing. `BEEWEAVE_INBOX_DIR` defaults to `workbench/inbox` in the current project:
+Move it to `$BEEWEAVE_WORKBENCH_PATH/inbox/rejected/` for manual editing. `BEEWEAVE_WORKBENCH_PATH` defaults to `workbench` in the current project:
 - `_staging/concepts/page.md` → `workbench/inbox/rejected/rejected-concepts-page.md`
 - `_staging/concepts/page.patch.md` → `workbench/inbox/rejected/rejected-patch-concepts-page.md`
 - Prefix with `rejected-` so the user can identify it

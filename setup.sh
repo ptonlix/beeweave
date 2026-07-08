@@ -531,33 +531,21 @@ else
   update_env_value "BEEWEAVE_VAULT_PATH" "$VAULT_PATH"
 fi
 
-SOURCES_DIR=""
+WORKBENCH_PATH=""
 if [ -f "$SCRIPT_DIR/.env" ]; then
-  SOURCES_DIR=$(grep -E '^BEEWEAVE_SOURCES_DIR=' "$SCRIPT_DIR/.env" | cut -d'=' -f2- | sed 's/^"//;s/"$//')
+  WORKBENCH_PATH=$(grep -E '^BEEWEAVE_WORKBENCH_PATH=' "$SCRIPT_DIR/.env" | cut -d'=' -f2- | sed 's/^"//;s/"$//')
 fi
-if [ -n "$SOURCES_DIR" ]; then
-  IFS=',' read -r -a _source_paths <<< "$SOURCES_DIR"
-  _expanded_sources=()
-  for _source_path in "${_source_paths[@]}"; do
-    _source_path="${_source_path#"${_source_path%%[![:space:]]*}"}"
-    _source_path="${_source_path%"${_source_path##*[![:space:]]}"}"
-    [ -n "$_source_path" ] || continue
-    _expanded_source="$(expand_path "$_source_path")"
-    if [ "$(basename "$_expanded_source")" = "workbench" ]; then
-      init_workbench_layout "$_expanded_source"
-    else
-      mkdir -p "$_expanded_source"
-    fi
-    _expanded_sources+=("$_expanded_source")
-  done
-  if [ ${#_expanded_sources[@]} -gt 0 ]; then
-    (IFS=','; update_env_value "BEEWEAVE_SOURCES_DIR" "${_expanded_sources[*]}")
-  fi
+if [ -z "$WORKBENCH_PATH" ]; then
+  WORKBENCH_PATH="./workbench"
 fi
+WORKBENCH_PATH="$(expand_path "$WORKBENCH_PATH")"
+init_workbench_layout "$WORKBENCH_PATH"
+update_env_value "BEEWEAVE_WORKBENCH_PATH" "$WORKBENCH_PATH"
 
 # Write global config with quoted path (preserves spaces)
 cat > "$GLOBAL_CONFIG" <<EOF
 BEEWEAVE_VAULT_PATH="$VAULT_PATH"
+BEEWEAVE_WORKBENCH_PATH="$WORKBENCH_PATH"
 BEEWEAVE_REPO="$SCRIPT_DIR"
 BEEWEAVE_VERSION="source"
 EOF

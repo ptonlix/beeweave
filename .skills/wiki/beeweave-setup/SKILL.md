@@ -20,9 +20,9 @@ If `.env` doesn't exist, create it from `.env.example`. Ask the user for:
    - Default: `~/Documents/beeweave-vault`
    - Must be an absolute path (after expansion)
 
-2. **Where are your source documents?** → `BEEWEAVE_SOURCES_DIR`
-   - Can be multiple paths, comma-separated
-   - Default: `~/Documents`
+2. **Where should the workbench live?** → `BEEWEAVE_WORKBENCH_PATH`
+   - Default: sibling `workbench` directory next to the vault or project
+   - Holds inbox captures, source material, article drafts, and published records
 
 3. **Want to import Claude history?** → `CLAUDE_HISTORY_PATH`
    - Default: auto-discovers from `~/.claude`

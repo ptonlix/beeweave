@@ -16,7 +16,7 @@ You are computing the current state of the wiki: what's been ingested, what's ne
 
 ## Before You Start
 
-1. **Resolve config** — follow the Config Resolution Protocol in `beeweave-core/SKILL.md` (inline `@name` override → walk up CWD for `.env` → `~/.beeweave/config` → prompt setup). This gives `BEEWEAVE_VAULT_PATH`, `BEEWEAVE_SOURCES_DIR`, `CLAUDE_HISTORY_PATH`, and `CODEX_HISTORY_PATH`.
+1. **Resolve config** — follow the Config Resolution Protocol in `beeweave-core/SKILL.md` (inline `@name` override → walk up CWD for `.env` → `~/.beeweave/config` → prompt setup). This gives `BEEWEAVE_VAULT_PATH`, `BEEWEAVE_WORKBENCH_PATH`, `CLAUDE_HISTORY_PATH`, and `CODEX_HISTORY_PATH`.
 2. Read `.manifest.json` at the vault root — this is the ingest tracking ledger
 
 ## The Manifest
@@ -72,9 +72,9 @@ The manifest lives at `$BEEWEAVE_VAULT_PATH/.manifest.json`. It tracks every sou
 
 Build an inventory of everything available to ingest right now:
 
-### Documents (from `BEEWEAVE_SOURCES_DIR`)
+### Documents (from `$BEEWEAVE_WORKBENCH_PATH/library/`)
 ```
-Glob each directory in BEEWEAVE_SOURCES_DIR for all text files
+Glob `$BEEWEAVE_WORKBENCH_PATH/library/` for all text files
 Record: path, size, modification time
 ```
 
@@ -213,7 +213,7 @@ Replace the old single-line Recommendation with a ranked **What to Do Next** sec
 
 0. **Staged writes pending** (only when `WIKI_STAGED_WRITES=true`) — Glob `$BEEWEAVE_VAULT_PATH/_staging/**/*.md` and `**/*.patch.md`. Count new pages and patches separately. Report the oldest file's age (mtime). This is always listed first if any staged files exist — it has the highest intent signal (the LLM already did the work; the human just needs to review).
 
-1. **Inbox pending files** — list files under `$BEEWEAVE_INBOX_DIR/captures/` and `$BEEWEAVE_INBOX_DIR/web/` that are not `.gitkeep`. `BEEWEAVE_INBOX_DIR` defaults to `workbench/inbox`. Exclude `archived/` and `rejected/` from default pending counts. Count and name them.
+1. **Inbox pending files** — list files under `$BEEWEAVE_WORKBENCH_PATH/inbox/captures/` and `$BEEWEAVE_WORKBENCH_PATH/inbox/web/` that are not `.gitkeep`. `BEEWEAVE_WORKBENCH_PATH` defaults to `workbench` in the current project. Exclude `archived/` and `rejected/` from default pending counts. Count and name them.
 
 2. **Stale core pages** — scan all vault `.md` files. A page is "stale" when its `updated` frontmatter field is ≥90 days before today's date AND it has ≥5 incoming wikilinks (i.e., it's "core" — other pages depend on it). List them by name + last-updated date.
 

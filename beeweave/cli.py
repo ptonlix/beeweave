@@ -689,7 +689,7 @@ def write_project_env(project_dir: Path) -> None:
         return
     env.write_text(
         'BEEWEAVE_VAULT_PATH="./vault"\n'
-        'BEEWEAVE_SOURCES_DIR="./workbench"\n',
+        'BEEWEAVE_WORKBENCH_PATH="./workbench"\n',
         encoding="utf-8",
     )
     print("✅  Created project .env")
@@ -847,8 +847,11 @@ def uninstall_project(project_dir: Path, agents: list[str]) -> int:
                 removed_bootstrap += 1
 
     env = project_dir / ".env"
-    default_env = 'BEEWEAVE_VAULT_PATH="./vault"\nBEEWEAVE_SOURCES_DIR="./workbench"\n'
-    if env.is_file() and env.read_text(encoding="utf-8") == default_env:
+    default_envs = {
+        'BEEWEAVE_VAULT_PATH="./vault"\n'
+        'BEEWEAVE_WORKBENCH_PATH="./workbench"\n',
+    }
+    if env.is_file() and env.read_text(encoding="utf-8") in default_envs:
         env.unlink()
         removed_bootstrap += 1
 
@@ -878,13 +881,22 @@ def resolve_vault_path(cli_vault: str | None, *, default_project_vault: Path | N
     return existing
 
 
-def write_config(vault_path: str) -> None:
+def _default_workbench_path(vault_path: str) -> str:
+    if not vault_path:
+        return ""
+    vault = Path(vault_path).expanduser()
+    return str(vault.parent / "workbench")
+
+
+def write_config(vault_path: str, workbench_path: str | None = None) -> None:
     GLOBAL_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     # BEEWEAVE_REPO points at the bundled data root so skills that reference
     # framework assets (templates, references) can find them post-install.
     repo_root = skills_dir().parent
+    resolved_workbench = workbench_path or _default_workbench_path(vault_path)
     GLOBAL_CONFIG.write_text(
         f'BEEWEAVE_VAULT_PATH="{vault_path}"\n'
+        f'BEEWEAVE_WORKBENCH_PATH="{resolved_workbench}"\n'
         f'BEEWEAVE_REPO="{repo_root}"\n'
         f'BEEWEAVE_VERSION="{__version__}"\n'
     )
@@ -948,7 +960,8 @@ def cmd_setup(args: argparse.Namespace) -> int:
     if vault_path:
         init_vault_layout(vault_path)
         print(f"✅  Initialized vault layout → {Path(vault_path).expanduser().resolve()}")
-    write_config(vault_path)
+    workbench_path = str(project_dir / "workbench") if project_dir is not None else None
+    write_config(vault_path, workbench_path)
     if not vault_path:
         print("    → Vault path not set yet. Re-run with `--vault /path/to/vault`")
         print("      or edit BEEWEAVE_VAULT_PATH in ~/.beeweave/config.")
@@ -1171,8 +1184,10 @@ def cmd_info(args: argparse.Namespace) -> int:
     print(f"config:    {GLOBAL_CONFIG}{'' if GLOBAL_CONFIG.exists() else ' (not written yet)'}")
     if GLOBAL_CONFIG.exists():
         vp = _read_config_value("BEEWEAVE_VAULT_PATH")
+        wp = _read_config_value("BEEWEAVE_WORKBENCH_PATH")
         setup_ver = _read_config_value("BEEWEAVE_VERSION")
         print(f"vault:     {vp or '(unset)'}")
+        print(f"workbench: {wp or '(unset)'}")
         print(f"setup ran: {setup_ver or '(never)'}")
     print(f"bundled skills: {len(bundled)}")
     print()

@@ -17,7 +17,7 @@ You are maintaining a persistent, compounding knowledge base. The wiki is not a 
 
 ### Layer 1: Raw Sources (immutable)
 
-The user's original documents — articles, papers, notes, PDFs, conversation logs, bookmarks, **and images** (screenshots, whiteboard photos, diagrams, slide captures). These are never modified by the system. They live wherever the user keeps them (configured via `BEEWEAVE_SOURCES_DIR` in `.env`). Images are first-class sources: the ingest skills read them via the Read tool's vision support and treat their interpreted content as inferred unless it's verbatim transcribed text. Image ingestion requires a vision-capable model — models without vision support should skip image sources and report which files were skipped.
+The user's original documents — articles, papers, notes, PDFs, conversation logs, bookmarks, **and images** (screenshots, whiteboard photos, diagrams, slide captures). These are never modified by the system. They live in the workbench, usually under `$BEEWEAVE_WORKBENCH_PATH/library/` or a specific path the user passes to ingest. Images are first-class sources: the ingest skills read them via the Read tool's vision support and treat their interpreted content as inferred unless it's verbatim transcribed text. Image ingestion requires a vision-capable model — models without vision support should skip image sources and report which files were skipped.
 
 Think of raw sources as the "source code" — authoritative but hard to query directly.
 
@@ -520,19 +520,19 @@ Every write skill reads `BEEWEAVE_LINK_FORMAT` from config before generating lin
 
 ### Resolution order
 
-0. **Inline vault override (`@name`)** — if the user's request contains an `@<name>` token (e.g. `@work save this`, `query @personal about X`), resolve `~/.beeweave/config.<name>` directly and use its `BEEWEAVE_VAULT_PATH`. This **overrides** both the CWD `.env` walk-up and the active symlink, and applies to **that invocation only** — never run `ln -sf` or otherwise change the active vault for an `@name` request. If `~/.beeweave/config.<name>` doesn't exist, tell the user it doesn't exist and list the available vaults (the `beeweave-switch` **List** logic), then stop — do **not** silently fall back to the default. The `@name` is a routing directive, not content: strip it out before treating the rest of the request as the actual instruction or page text.
+0. **Inline profile override (`@name`)** — if the user's request contains an `@<name>` token (e.g. `@work save this`, `query @personal about X`), resolve `~/.beeweave/config.<name>` directly and use the full config from that file, including `BEEWEAVE_VAULT_PATH`, `BEEWEAVE_WORKBENCH_PATH`, QMD settings, and tool-specific paths. This **overrides** both the CWD `.env` walk-up and the active symlink, and applies to **that invocation only** — never run `ln -sf` or otherwise change the active profile for an `@name` request. If `~/.beeweave/config.<name>` doesn't exist, tell the user it doesn't exist and list the available profiles (the `beeweave-switch` **List** logic), then stop — do **not** silently fall back to the default. The `@name` is a routing directive, not content: strip it out before treating the rest of the request as the actual instruction or page text.
 1. **Walk up from CWD** — look for a `.env` file in the current directory, then each parent, up to `$HOME`. Stop at the first `.env` that contains `BEEWEAVE_VAULT_PATH`.
 2. **Global config** — if no local `.env` found, read `~/.beeweave/config`.
 3. **Prompt setup** — if neither exists, tell the user: "No config found. Run `beeweave-setup` to initialize your wiki."
 
-`@name` is a **per-invocation override** — it targets one vault for one request. `/beeweave-switch <name>` is the **persistent default** — it re-points the active symlink for all future requests. Use `@name` to touch the other vault from anywhere without disturbing your default ("brain") vault.
+`@name` is a **per-invocation profile override** — it targets one complete BeeWeave profile for one request. `/beeweave-switch <name>` is the **persistent default** — it re-points the active symlink for all future requests. Use `@name` to touch another profile from anywhere without disturbing your default ("brain") profile.
 
 ```
 find_config() {
   # $1 = parsed @name from the request, if any (else empty)
   if [[ -n "$1" ]]; then
     [[ -f "$HOME/.beeweave/config.$1" ]] && { echo "$HOME/.beeweave/config.$1"; return; }
-    echo ""; return   # named vault missing → caller reports + lists, no fallback
+    echo ""; return   # named profile missing → caller reports + lists, no fallback
   fi
   dir="$PWD"
   while [[ "$dir" != "$HOME" && "$dir" != "/" ]]; do
@@ -557,14 +557,14 @@ STATE_DIR="$HOME/.beeweave/state/$VAULT_ID"
 
 Every skill's setup section should read:
 
-> **Resolve config** — follow the Config Resolution Protocol in `beeweave-core/SKILL.md`. Honor an inline `@name` override first, then walk up from CWD for `.env`, fall back to `~/.beeweave/config`, else prompt setup. This gives `BEEWEAVE_VAULT_PATH` and any tool-specific path overrides.
+> **Resolve config** — follow the Config Resolution Protocol in `beeweave-core/SKILL.md`. Honor an inline `@name` override first, then walk up from CWD for `.env`, fall back to `~/.beeweave/config`, else prompt setup. This gives one complete BeeWeave profile: `BEEWEAVE_VAULT_PATH`, `BEEWEAVE_WORKBENCH_PATH`, and any tool-specific path overrides.
 
 ## Environment Variables
 
 The wiki is configured through environment variables (see `.env.example`). The only required variable is the vault path — everything else has sensible defaults.
 
 - `BEEWEAVE_VAULT_PATH` — Where the wiki lives **(required)**
-- `BEEWEAVE_SOURCES_DIR` — Where raw source documents are
+- `BEEWEAVE_WORKBENCH_PATH` — Workbench root for captures, source material, and drafts
 - `BEEWEAVE_CATEGORIES` — Comma-separated list of categories
 - `WIKI_SKIP_PROJECTS` — Comma-separated substrings; any project dir whose name contains one is excluded from history ingest (scan + delta + manifest). See the "Project Scoping" step in the history-ingest skills.
 - `CLAUDE_HISTORY_PATH` — Where to find Claude conversation data

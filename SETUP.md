@@ -48,7 +48,7 @@ Open `.env` and set `BEEWEAVE_VAULT_PATH` to your Obsidian vault. The default po
 
 ```
 BEEWEAVE_VAULT_PATH=./vault
-BEEWEAVE_SOURCES_DIR=./workbench
+BEEWEAVE_WORKBENCH_PATH=./workbench
 ```
 
 That's the only required config.
@@ -106,7 +106,7 @@ Open this project in your coding agent and tell it what you want:
 | "Audit my wiki" | `beeweave-lint` |
 | "Rebuild from scratch" | `beeweave-rebuild` |
 
-The agent reads skills from `.skills/wiki/` and `.skills/workbench/`, resolves the vault path via the Config Resolution Protocol (`@name` override → `.env` → `~/.beeweave/config`), and does the work.
+The agent reads skills from `.skills/wiki/` and `.skills/workbench/`, resolves the full BeeWeave profile via the Config Resolution Protocol (`@name` override → `.env` → `~/.beeweave/config`), and does the work.
 
 ### 3. Open in Obsidian
 
@@ -185,8 +185,7 @@ Knowledge that's project-specific goes under `projects/<name>/`. Knowledge that'
 
 | Variable | What it does | Default |
 |---|---|---|
-| `BEEWEAVE_SOURCES_DIR` | Directories with docs to ingest (comma-separated) | `./workbench` |
-| `BEEWEAVE_INBOX_DIR` | Workbench inbox path for pending captures | `./workbench/inbox` |
+| `BEEWEAVE_WORKBENCH_PATH` | Workbench root for captures, source material, and drafts | `./workbench` |
 | `BEEWEAVE_CATEGORIES` | Wiki page categories | `concepts,entities,skills,references,synthesis,projects` |
 | `BEEWEAVE_MAX_PAGES_PER_INGEST` | Max pages updated per ingest | `15` |
 | `CLAUDE_HISTORY_PATH` | Where to find Claude data | *auto-discovers from `~/.claude`* |

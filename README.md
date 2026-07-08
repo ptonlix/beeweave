@@ -276,10 +276,11 @@ Ingest these new references, then update the article.
 This is the data flywheel: every capture makes the vault better, every vault
 query improves the next draft, and every draft reveals what to collect next.
 
-### Named Vault Routing
+### Named Profile Routing
 
-Create named configs such as `~/.beeweave/config.work`, then route a single
-request with `@name`:
+Create named configs such as `~/.beeweave/config.work`. Each config is a full
+BeeWeave profile: vault path, workbench path, QMD settings, and tool-specific
+paths. Route a single request with `@name`:
 
 ```text
 beeweave-query @work what do I know about deployment rollbacks?
@@ -287,7 +288,7 @@ beeweave-query @work what do I know about deployment rollbacks?
 ```
 
 The `@name` override applies only to that request and does not change the
-default vault.
+default profile.
 All supported agents can use this syntax, including Claude Code, Cursor, Windsurf, Codex, Gemini,
 Kiro, Hermes, OpenClaw, Pi, Copilot CLI, and generic `AGENTS.md` agents.
 

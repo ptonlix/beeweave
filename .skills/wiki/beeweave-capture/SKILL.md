@@ -9,7 +9,7 @@ description: >
   capture", "capture this finding", "save this bug fix", "save this gotcha", "drop this to inbox", "quick
   save to wiki") that drops findings to `workbench/inbox/captures/` in under 60 seconds with no manifest
   or index writes — used by the session-end Stop hook to auto-preserve findings. Accepts inline
-  named-vault routing like "@research save this" via the shared Config Resolution Protocol.
+  named-profile routing like "@research save this" via the shared Config Resolution Protocol.
 ---
 
 # Wiki Capture — Conversation to Wiki Note
@@ -27,7 +27,7 @@ Trigger when invoked as `/beeweave-capture --quick`, by "quick capture" / "captu
 
 **Speed contract:** Inline only. No subagents. No QMD. No manifest/`index.md`/`log.md`/`hot.md` writes. Target: <60 seconds. Promotion to full wiki pages happens later via `/beeweave-ingest`.
 
-1. **Resolve config** (Config Resolution Protocol in `beeweave-core/SKILL.md`): get `BEEWEAVE_VAULT_PATH` and `BEEWEAVE_INBOX_DIR` (default: nearest project `workbench/inbox`, or `./workbench/inbox` from the current project root). Ensure `$BEEWEAVE_INBOX_DIR/captures` exists; create it if not.
+1. **Resolve config** (Config Resolution Protocol in `beeweave-core/SKILL.md`): get `BEEWEAVE_VAULT_PATH` and `BEEWEAVE_WORKBENCH_PATH` (default: nearest project `workbench`, or `./workbench` from the current project root). Ensure `$BEEWEAVE_WORKBENCH_PATH/inbox/captures` exists; create it if not.
 
 2. **Gate — KEEP or SKIP?** Before extracting, judge whether this session has capture value. This keeps the skill safe to call automatically without spamming `workbench/inbox/captures/`.
    - **SKIP** (exit with "Nothing worth capturing in this session.") if ALL are true: the conversation is purely conversational (planning/Q&A/explanation) with no implementation; no errors, debugging, or problem-solving visible; nothing surprising or undocumented; every finding is already obvious from the docs.
@@ -40,7 +40,7 @@ Trigger when invoked as `/beeweave-capture --quick`, by "quick capture" / "captu
 
 5. **Infer project context** from repo names, file paths, framework mentions, error messages. Use the most specific name you can reliably infer; else `null`.
 
-6. **Write inbox capture files** — for each cluster, write `$BEEWEAVE_INBOX_DIR/captures/<ISO-date>-<slug>.md`. Read `references/INBOX-CAPTURE-FORMAT.md` for the full frontmatter spec, finding-block body structure, and provenance/confidence calibration. Per-cluster fields that vary: `title`, `tags` (2–4 from taxonomy), `summary` (≤200 chars), `project` (inferred or `null`), `base_confidence` (0.6 discussed → 0.75 fix applied → 0.9 test confirmed), `provenance.extracted`/`provenance.inferred` (sum to 1.0), `lifecycle_changed` (today), `sources` (`"<project> session (<YYYY-MM-DD>)"`).
+6. **Write inbox capture files** — for each cluster, write `$BEEWEAVE_WORKBENCH_PATH/inbox/captures/<ISO-date>-<slug>.md`. Read `references/INBOX-CAPTURE-FORMAT.md` for the full frontmatter spec, finding-block body structure, and provenance/confidence calibration. Per-cluster fields that vary: `title`, `tags` (2–4 from taxonomy), `summary` (≤200 chars), `project` (inferred or `null`), `base_confidence` (0.6 discussed → 0.75 fix applied → 0.9 test confirmed), `provenance.extracted`/`provenance.inferred` (sum to 1.0), `lifecycle_changed` (today), `sources` (`"<project> session (<YYYY-MM-DD>)"`).
 
 7. **Confirm** — list staged files and tell the user to run `/beeweave-ingest` to promote them:
    ```

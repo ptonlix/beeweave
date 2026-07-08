@@ -5,7 +5,7 @@ description: >
   when the user says "update wiki", "sync to wiki", "save this to my wiki", "update obsidian",
   or wants to distill what they've been working on into their knowledge base. This is the
   cross-project skill that lets you push knowledge from wherever you are into the vault. Accepts
-  inline named-vault routing like "@work update wiki" via the shared Config Resolution Protocol.
+  inline named-profile routing like "@work update wiki" via the shared Config Resolution Protocol.
 ---
 
 # Wiki Update — Sync Any Project to Your Wiki

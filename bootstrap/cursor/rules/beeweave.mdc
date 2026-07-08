@@ -10,7 +10,7 @@ This project is a **skill-based framework** for building and maintaining an Obsi
 
 ## Quick Orientation
 
-1. Resolve config via `AGENTS.md`: honor an inline `@name` vault override first, then `.env`, then `~/.beeweave/config`. This gives `BEEWEAVE_VAULT_PATH` — where the wiki lives.
+1. Resolve config via `AGENTS.md`: honor an inline `@name` profile override first, then `.env`, then `~/.beeweave/config`. This gives the full BeeWeave profile, including `BEEWEAVE_VAULT_PATH` and `BEEWEAVE_WORKBENCH_PATH`.
 2. Read `.manifest.json` at the vault root to see what's already been ingested.
 3. Skills are in `.skills/` (also at `.cursor/skills/`). Each subfolder has a `SKILL.md`.
 

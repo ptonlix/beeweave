@@ -30,9 +30,9 @@ bwe setup --global-extra beeweave-capture,beeweave-status
 
 完整 BeeWeave skill 集会安装到你选择的项目本地 Agent 目录中。这样其它项目保持干净，而 BeeWeave 工作区拥有完整工作流能力。
 
-## 命名 Vault 路由
+## 命名 Profile 路由
 
-可以创建 `~/.beeweave/config.work` 这样的命名配置，然后只为单次请求使用 `@name`：
+可以创建 `~/.beeweave/config.work` 这样的命名配置。每个配置都是一套完整的 BeeWeave profile，包括 vault 路径、workbench 路径、QMD 设置和工具专用路径。然后只为单次请求使用 `@name`：
 
 ```text
 beeweave-query @work what do I know about deployment rollbacks?

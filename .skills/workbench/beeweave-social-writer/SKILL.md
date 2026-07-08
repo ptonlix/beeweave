@@ -14,6 +14,58 @@ description: |
 
 **"有见识的普通人在认真聊一件打动他的事，只是不超过三屏。"**
 
+## 交付与文件落点
+
+除非用户明确要求只在聊天中输出，完成社交短内容草稿后必须把成稿保存为 Markdown 文件，落到当前 BeeWeave 工作区的 `workbench/articles/drafts/` 目录。社交短内容也是创作草稿，不直接写入 vault。
+
+### 工作区定位
+
+如果用户请求里包含 `@<name>`，只从 `~/.beeweave/config.<name>` 读取 `BEEWEAVE_WORKBENCH_PATH`。否则只从 `~/.beeweave/config` 读取 `BEEWEAVE_WORKBENCH_PATH`。写入 `$BEEWEAVE_WORKBENCH_PATH/articles/drafts/`。
+
+如果目标配置文件不存在、没有配置 `BEEWEAVE_WORKBENCH_PATH`，或目标 drafts 目录无法创建，先向用户说明无法找到 BeeWeave workbench，不要猜测其它路径，也不要把短内容写进 vault。
+
+### 文件命名规则
+
+统一使用：
+
+```text
+YYYY-MM-DD-social-<platform-or-format>-<topic-slug>.md
+```
+
+- `YYYY-MM-DD` 使用当天日期，便于按时间排序
+- `social` 固定表示社交短内容草稿
+- `<platform-or-format>` 使用 `x`、`thread`、`wechat-moments`、`short-post` 等短标识
+- `<topic-slug>` 用 3-6 个英文小写词或拼音词，采用 kebab-case
+- 如果主题很难转成英文或拼音，可以使用简短中文主题，但仍保留日期、`social` 和格式前缀
+- 同一天同主题出现重名时，在文件名末尾追加 `-v2`、`-v3`
+
+示例：
+
+```text
+2026-07-06-social-x-agent-workflow.md
+2026-07-06-social-thread-ai-content-flywheel.md
+2026-07-06-social-short-post-创作工作流-v2.md
+```
+
+### 草稿文件格式
+
+文件内容使用普通 Markdown，开头添加简洁 frontmatter：
+
+```yaml
+---
+title: "<短内容标题或主题>"
+type: social
+format: x
+status: draft
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+tags:
+  - writing
+---
+```
+
+正文放最终可发布版本。多个候选版本可以用 `## 版本 A`、`## 版本 B` 分隔。质检报告放在正文后，用 `## 推特质检报告` 或 `## 质检报告` 分隔。最终回复用户时，只需要说明已保存的文件路径、推荐发布版本和是否通过质检，不要把所有候选完整贴一遍，除非用户要求。
+
 ## 核心价值观
 
 这些价值观决定了短内容的底色，写作时需要时刻贯穿。和长文写作完全一致：

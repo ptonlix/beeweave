@@ -218,6 +218,9 @@ def test_setup_defaults_to_project_vault_without_prompt(tmp_path, monkeypatch):
     assert (project / "vault" / "concepts").is_dir()
     config = (tmp_path / ".beeweave" / "config").read_text(encoding="utf-8")
     assert f'BEEWEAVE_VAULT_PATH="{project / "vault"}"' in config
+    assert f'BEEWEAVE_WORKBENCH_PATH="{project / "workbench"}"' in config
+    env = (project / ".env").read_text(encoding="utf-8")
+    assert 'BEEWEAVE_WORKBENCH_PATH="./workbench"' in env
 
 
 def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):

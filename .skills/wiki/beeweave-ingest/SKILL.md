@@ -20,7 +20,7 @@ You are ingesting source documents into an Obsidian wiki. Your job is not to sum
 
 ## Before You Start
 
-1. **Resolve config** — follow the Config Resolution Protocol in `beeweave-core/SKILL.md` (inline `@name` override → walk up CWD for `.env` → `~/.beeweave/config` → prompt setup). This gives `BEEWEAVE_VAULT_PATH`, `BEEWEAVE_SOURCES_DIR`, `BEEWEAVE_LINK_FORMAT` (default: `wikilink`), and `WIKI_STAGED_WRITES`. Only read the specific variables you need — do not log, echo, or reference any other values from these files.
+1. **Resolve config** — follow the Config Resolution Protocol in `beeweave-core/SKILL.md` (inline `@name` override → walk up CWD for `.env` → `~/.beeweave/config` → prompt setup). This gives `BEEWEAVE_VAULT_PATH`, `BEEWEAVE_WORKBENCH_PATH`, `BEEWEAVE_LINK_FORMAT` (default: `wikilink`), and `WIKI_STAGED_WRITES`. Only read the specific variables you need — do not log, echo, or reference any other values from these files.
 2. **Check `WIKI_STAGED_WRITES`** — if set to `true`, all new and updated category pages go to `_staging/<category>/` instead of their final location. Tell the user at the start of the ingest: "Staged writes mode is enabled — pages will land in `_staging/` for your review. Run `/beeweave-stage-commit` when ready to promote."
 3. Read `.manifest.json` at the vault root to check what's already been ingested
 4. Read `index.md` to understand current wiki content
@@ -82,7 +82,7 @@ Process pending inputs from `workbench/inbox/`. Use when:
 - After a paste-heavy session where notes were captured quickly without structure
 - Browser captures were saved under `workbench/inbox/web/`
 
-In inbox mode, files under `BEEWEAVE_INBOX_DIR/captures/` and `BEEWEAVE_INBOX_DIR/web/` are treated as sources. `BEEWEAVE_INBOX_DIR` defaults to `workbench/inbox` in the current project. After promoting a file to a proper wiki page, **move the original into `workbench/inbox/archived/`** (same filename, creating the directory if it doesn't exist) instead of deleting it. Never leave promoted files in `captures/` or `web/` — they'll be double-processed on the next run; moving them into `archived/` keeps them out of that scan while preserving the original input.
+In inbox mode, files under `$BEEWEAVE_WORKBENCH_PATH/inbox/captures/` and `$BEEWEAVE_WORKBENCH_PATH/inbox/web/` are treated as sources. If `BEEWEAVE_WORKBENCH_PATH` is unset, use `./workbench` from the resolved project root. After promoting a file to a proper wiki page, **move the original into `$BEEWEAVE_WORKBENCH_PATH/inbox/archived/`** (same filename, creating the directory if it doesn't exist) instead of deleting it. Never leave promoted files in `captures/` or `web/` — they'll be double-processed on the next run; moving them into `archived/` keeps them out of that scan while preserving the original input.
 
 This keeps faith with the "immutable input layer" principle in `beeweave-core/SKILL.md`: some inbox captures have no other copy (e.g. a quick-capture finding typed straight into `workbench/inbox/captures/` with no external document behind it), so the promoted file is the only record once it leaves the pending directory.
 
@@ -93,7 +93,7 @@ This keeps faith with the "immutable input layer" principle in `beeweave-core/SK
 - If the file has only `sources:`, copy those entries verbatim.
 - Only fall back to the inbox filename if the file has no `sources:` or `capture_source` fields at all.
 
-**Move safety:** Only move the specific file that was just promoted. Before moving, verify the resolved path is inside `$BEEWEAVE_INBOX_DIR/captures/` or `$BEEWEAVE_INBOX_DIR/web/` — never touch files outside these directories. Never use wildcards or recursive operations (`rm -rf`, `mv *`). Move one file at a time by its exact path into `$BEEWEAVE_INBOX_DIR/archived/`, preserving its filename. If a file of the same name already exists there, append a numeric suffix rather than overwriting.
+**Move safety:** Only move the specific file that was just promoted. Before moving, verify the resolved path is inside `$BEEWEAVE_WORKBENCH_PATH/inbox/captures/` or `$BEEWEAVE_WORKBENCH_PATH/inbox/web/` — never touch files outside these directories. Never use wildcards or recursive operations (`rm -rf`, `mv *`). Move one file at a time by its exact path into `$BEEWEAVE_WORKBENCH_PATH/inbox/archived/`, preserving its filename. If a file of the same name already exists there, append a numeric suffix rather than overwriting.
 
 ## The Ingest Process
 

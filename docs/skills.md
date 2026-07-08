@@ -34,10 +34,11 @@ The full BeeWeave skill set is installed project-locally for selected agents.
 This keeps unrelated projects clean while giving the BeeWeave workspace the
 complete workflow surface.
 
-## Named Vault Routing
+## Named Profile Routing
 
-Create named configs such as `~/.beeweave/config.work`, then route one request
-with `@name`:
+Create named configs such as `~/.beeweave/config.work`. Each config is a full
+BeeWeave profile: vault path, workbench path, QMD settings, and tool-specific
+paths. Route one request with `@name`:
 
 ```text
 beeweave-query @work what do I know about deployment rollbacks?

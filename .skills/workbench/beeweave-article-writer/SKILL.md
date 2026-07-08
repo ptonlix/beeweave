@@ -14,6 +14,56 @@ description: |
 
 **"有见识的普通人在认真聊一件打动他的事。"**
 
+## 交付与文件落点
+
+除非用户明确要求只在聊天中输出，完成长文草稿后必须把成稿保存为 Markdown 文件，落到当前 BeeWeave 工作区的 `workbench/articles/drafts/` 目录。
+
+### 工作区定位
+
+如果用户请求里包含 `@<name>`，只从 `~/.beeweave/config.<name>` 读取 `BEEWEAVE_WORKBENCH_PATH`。否则只从 `~/.beeweave/config` 读取 `BEEWEAVE_WORKBENCH_PATH`。写入 `$BEEWEAVE_WORKBENCH_PATH/articles/drafts/`。
+
+如果目标配置文件不存在、没有配置 `BEEWEAVE_WORKBENCH_PATH`，或目标 drafts 目录无法创建，先向用户说明无法找到 BeeWeave workbench，不要猜测其它路径，也不要把文章写进 vault。
+
+### 文件命名规则
+
+统一使用：
+
+```text
+YYYY-MM-DD-article-<topic-slug>.md
+```
+
+- `YYYY-MM-DD` 使用当天日期，便于按时间排序
+- `article` 固定表示长文草稿，便于和社交短内容、digest 区分
+- `<topic-slug>` 用 3-6 个英文小写词或拼音词，采用 kebab-case
+- 如果主题很难转成英文或拼音，可以使用简短中文主题，但仍保留日期和 `article` 前缀
+- 同一天同主题出现重名时，在文件名末尾追加 `-v2`、`-v3`
+
+示例：
+
+```text
+2026-07-06-article-agent-writing-workflow.md
+2026-07-06-article-ai-content-flywheel-v2.md
+2026-07-06-article-创作工作流.md
+```
+
+### 草稿文件格式
+
+文件内容使用普通 Markdown，开头添加简洁 frontmatter：
+
+```yaml
+---
+title: "<文章标题>"
+type: article
+status: draft
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+tags:
+  - writing
+---
+```
+
+正文放完整文章。质检报告放在正文后，用 `## 质检报告` 分隔。最终回复用户时，只需要说明已保存的文件路径、文章标题和是否通过质检，不要把整篇文章再完整贴一遍，除非用户要求。
+
 ## 核心价值观
 
 这些价值观决定了文章的底色，写作时需要时刻贯穿：
