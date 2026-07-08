@@ -57,12 +57,14 @@ title: "<短内容标题或主题>"
 type: social
 format: x
 status: draft
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
+created: YYYY-MM-DDTHH:MM:SS±HH:MM
+updated: YYYY-MM-DDTHH:MM:SS±HH:MM
 tags:
   - writing
 ---
 ```
+
+文件名仍只使用 `YYYY-MM-DD` 方便排序；frontmatter 的 `created` 和 `updated` 必须使用当前本地时区的 ISO-8601 秒级时间戳，例如 `2026-07-08T16:51:10+08:00`。创建新草稿时二者通常相同；改写已有草稿时保留原 `created`，只更新 `updated`。
 
 正文放最终可发布版本。多个候选版本可以用 `## 版本 A`、`## 版本 B` 分隔。质检报告放在正文后，用 `## 推特质检报告` 或 `## 质检报告` 分隔。最终回复用户时，只需要说明已保存的文件路径、推荐发布版本和是否通过质检，不要把所有候选完整贴一遍，除非用户要求。
 
