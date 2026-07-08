@@ -17,7 +17,7 @@ BeeWeave turns project work into a reusable knowledge loop:
 
 Resolve config in this order:
 
-0. **Inline profile override (`@name`)** — if the request contains an `@<name>` token, read `~/.beeweave/config.<name>` directly. Use the full profile from that file, including `BEEWEAVE_VAULT_PATH` and `BEEWEAVE_WORKBENCH_PATH`. If it does not exist, report that and do **not** silently fall back to the default.
+0. **Inline vault override (`@name`)** — if the request contains an `@<name>` token, read `~/.beeweave/config.<name>` directly. Use the full profile from that file, including `BEEWEAVE_VAULT_PATH` and `BEEWEAVE_WORKBENCH_PATH`. If it does not exist, report that and do **not** silently fall back to the default.
 1. **Walk up from CWD** — look for `.env` in the current directory and parents.
 2. **Global config** — fall back to `~/.beeweave/config`.
 3. **Prompt setup** — if no config exists, ask the user to run `bwe setup`.

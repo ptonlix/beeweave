@@ -21,6 +21,7 @@ from beeweave import __version__
 from beeweave import profiles
 from beeweave import ui
 from beeweave import uninstall
+from beeweave import upgrade
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
@@ -881,6 +882,24 @@ def cmd_setup(args: argparse.Namespace) -> int:
     print("   /beeweave-update    → sync project knowledge into your vault")
     print("   /beeweave-query     → ask questions against your compiled vault")
     print()
+    if getattr(args, "_record_state", True):
+        installer = upgrade.detect_install_method(package_file=__file__)
+        recorded_workbench_path = workbench_path or _default_workbench_path(vault_path or "")
+        upgrade.record_setup_state(
+            config_dir=GLOBAL_CONFIG_DIR,
+            profile=selected_profile,
+            config_path=config_path,
+            project_dir=project_dir,
+            vault_path=vault_path or "",
+            workbench_path=recorded_workbench_path,
+            agents=selected_agents,
+            global_extra=selected_global_extra,
+            no_global=args.no_global,
+            no_project_local=args.no_project_local,
+            copy=args.copy,
+            version=__version__,
+            installer=installer,
+        )
     return 0
 
 
@@ -1066,6 +1085,146 @@ def cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def _print_version_check(result: upgrade.VersionCheck) -> None:
+    print(f"BeeWeave {result.current}")
+    if result.latest is None:
+        print("Latest   unknown")
+        print("Status   could not check latest version")
+        if result.error:
+            print(f"Reason   {result.error}")
+        return
+    print(f"Latest   {result.latest}")
+    if result.status == "update_available":
+        print("Status   update available")
+        print()
+        print("Run:")
+        print("  bwe upgrade")
+    else:
+        print("Status   up to date")
+
+
+def _replay_setup(entry: upgrade.ReplayEntry) -> int:
+    args = argparse.Namespace(
+        vault=entry.vault_path or None,
+        profile=entry.profile,
+        project=str(entry.project_dir) if entry.project_dir is not None else None,
+        agents=",".join(entry.agents) if entry.agents else "none",
+        no_global=entry.no_global,
+        global_extra=",".join(entry.global_extra) if entry.global_extra else "none",
+        no_project_local=entry.no_project_local,
+        copy=entry.copy,
+        _record_state=True,
+    )
+    return cmd_setup(args)
+
+
+def _bundled_skills_readable() -> tuple[bool, str]:
+    try:
+        root = skills_dir()
+        sample = next(iter(iter_skill_dirs()), None)
+        if sample is None:
+            return False, f"no bundled skills found under {root}"
+        skill_file = sample / "SKILL.md"
+        skill_file.stat().st_mtime
+    except (FileNotFoundError, OSError, RuntimeError, StopIteration) as exc:
+        return False, str(exc)
+    return True, str(skill_file)
+
+
+def cmd_upgrade(args: argparse.Namespace) -> int:
+    check = upgrade.check_version(__version__)
+    if args.check:
+        _print_version_check(check)
+        return 0
+
+    if check.latest is None:
+        _print_version_check(check)
+        return 1
+
+    if check.status != "update_available":
+        _print_version_check(check)
+        return 0
+
+    method = upgrade.detect_install_method(package_file=__file__)
+    command = upgrade.upgrade_command(method)
+    print(f"BeeWeave {check.current} → {check.latest}")
+    print(f"Installer: {method.kind}")
+
+    if command is None:
+        print()
+        print("BeeWeave does not know how to upgrade this install automatically.")
+        if method.detail:
+            print(f"Detected: {method.detail}")
+        print()
+        print("Recommended:")
+        for line in upgrade.manual_upgrade_hint(method):
+            print(f"  {line}")
+        return 1
+
+    print()
+    print("Running:")
+    print(f"  {' '.join(command)}")
+    result = upgrade.run_upgrade_command(command)
+    if result.stdout.strip():
+        print(result.stdout.strip())
+    if result.stderr.strip():
+        print(result.stderr.strip(), file=sys.stderr)
+    if not result.ok:
+        print(f"error: upgrade command failed with exit code {result.returncode}", file=sys.stderr)
+        return result.returncode or 1
+
+    print("✅  Package upgrade completed")
+    # The current Python process keeps the already-imported CLI code, but setup
+    # replay reads bundled skill files from disk through skills_dir(). For normal
+    # uv/pip upgrades those package-data files are replaced in the same location,
+    # so replay can refresh agent skill directories without spawning a new bwe.
+    # If the installer swapped environments or made the package data unreadable,
+    # skip replay and ask the user to run setup from the newly installed command.
+    readable, detail = _bundled_skills_readable()
+    if not readable:
+        print()
+        print("Package data is not readable after upgrade; skipping setup replay.")
+        print(f"Reason: {detail}")
+        print("Run: bwe setup")
+        return 0
+
+    plan = upgrade.replay_plan(GLOBAL_CONFIG_DIR)
+    if not plan.entries:
+        print()
+        print("No recorded setup replay state found.")
+        print("Run: bwe setup")
+        for profile, reason in plan.skipped:
+            print(f"Skipped {profile}: {reason}")
+        return 0
+
+    print()
+    print("Refreshing installed skills from recorded setup profiles...")
+    refreshed: list[str] = []
+    failed: list[tuple[str, int]] = []
+    for entry in plan.entries:
+        print()
+        print(f"Replay setup: {entry.profile}")
+        code = _replay_setup(entry)
+        if code == 0:
+            refreshed.append(entry.profile)
+        else:
+            failed.append((entry.profile, code))
+
+    print()
+    rows: list[tuple[str, str | int | None]] = [
+        ("Previous version", check.current),
+        ("Latest version", check.latest),
+        ("Installer", method.kind),
+        ("Refreshed profiles", ", ".join(refreshed) if refreshed else "none"),
+    ]
+    if plan.skipped:
+        rows.append(("Skipped profiles", "; ".join(f"{name}: {reason}" for name, reason in plan.skipped)))
+    if failed:
+        rows.append(("Failed profiles", "; ".join(f"{name}: exit {code}" for name, code in failed)))
+    ui.print_summary_panel("Upgrade complete", rows)
+    return 1 if failed else 0
+
+
 def _confirm_profile_overwrite() -> bool:
     if not sys.stdin.isatty():
         print("error: refusing to overwrite default config without interactive YES", file=sys.stderr)
@@ -1076,7 +1235,7 @@ def _confirm_profile_overwrite() -> bool:
             validate=lambda value: value == "YES",
             invalid_message='Type exactly "YES" to continue',
         ).strip()
-    except ImportError:
+    except (EOFError, ImportError):
         entered = input("Type YES to continue: ").strip()
     if entered != "YES":
         print("Cancelled.")
@@ -1149,6 +1308,10 @@ def build_parser() -> argparse.ArgumentParser:
     up = sub.add_parser("uninstall", help="remove BeeWeave skills and config")
     _add_uninstall_args(up)
     up.set_defaults(func=cmd_uninstall)
+
+    ug = sub.add_parser("upgrade", help="upgrade BeeWeave and refresh installed skills")
+    ug.add_argument("--check", action="store_true", help="check latest version without changing files")
+    ug.set_defaults(func=cmd_upgrade)
 
     lp = sub.add_parser("list", help="list bundled skills")
     lp.set_defaults(func=cmd_list)
@@ -1339,7 +1502,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     # Warn about stale installs on every command except `setup` (which fixes it)
     # and `info` (which calls _check_stale itself with richer output).
-    if getattr(args, "command", None) not in ("setup", "uninstall", "info", None):
+    if getattr(args, "command", None) not in ("setup", "uninstall", "info", "upgrade", None):
         _check_stale()
     try:
         return args.func(args)

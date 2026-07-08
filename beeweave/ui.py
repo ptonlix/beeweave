@@ -143,7 +143,11 @@ def text_prompt(
 def confirm_prompt(*, message: str, default: bool = False) -> bool:
     from InquirerPy import inquirer
 
-    return bool(inquirer.confirm(message=message, default=default, **_style_kwargs()).execute())
+    try:
+        prompt = inquirer.confirm(message=message, default=default, **_style_kwargs())
+    except TypeError:
+        prompt = inquirer.confirm(message=message, default=default)
+    return bool(prompt.execute())
 
 
 def _box_line(text: str, *, width: int, styles: tuple[str, ...] = ()) -> str:

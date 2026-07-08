@@ -8,6 +8,7 @@ BeeWeave exposes the `bwe` command.
 bwe setup             install skills into agents and write config
 bwe profile           manage BeeWeave profile config files
 bwe uninstall         remove BeeWeave skills and config
+bwe upgrade           upgrade BeeWeave and refresh installed skills
 bwe list              list bundled skills
 bwe info              show install paths, version, and config
 ```
@@ -37,6 +38,8 @@ bwe setup --global-extra beeweave-capture
 bwe setup --profile work
 bwe profile set-default work
 bwe uninstall --all
+bwe upgrade --check
+bwe upgrade
 bwe info
 ```
 
@@ -57,3 +60,24 @@ overwriting it.
 Use `bwe uninstall --all` to also clean project-local BeeWeave files from
 workspaces referenced by all BeeWeave profile configs. Vault and workbench
 content is preserved.
+
+## Upgrade
+
+Use `bwe upgrade --check` to compare the installed BeeWeave version with the
+latest package version without changing files.
+
+Use `bwe upgrade` for the common upgrade workflow. BeeWeave detects supported
+install methods and upgrades with the matching installer:
+
+```bash
+uv tool upgrade beeweave
+python -m pip install --upgrade beeweave
+```
+
+After a successful supported package upgrade, BeeWeave replays the setup choices
+recorded by prior successful `bwe setup` runs. This refreshes installed agent
+skill directories for all recorded profiles/workspaces so agents see the new
+bundled skills. If no setup replay state exists, run `bwe setup` once.
+
+Unsupported or source-checkout installs are not mutated automatically; `bwe
+upgrade` prints conservative manual steps instead.
