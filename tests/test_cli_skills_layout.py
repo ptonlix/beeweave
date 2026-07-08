@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from beeweave import cli
+from beeweave import profiles
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -109,6 +110,25 @@ def test_parse_menu_selection_supports_numbers_and_defaults():
     assert cli._parse_menu_selection("none") == []
 
 
+def test_parse_profile_rejects_path_like_names():
+    assert profiles.parse_profile(None) == "default"
+    assert profiles.parse_profile("work") == "work"
+    with pytest.raises(ValueError, match="letters, numbers"):
+        profiles.parse_profile("../work")
+
+
+def test_parse_profile_menu_selection_supports_existing_and_new_choice():
+    available = ["default", "work"]
+    assert profiles.parse_profile_menu_selection("", available) == "default"
+    assert profiles.parse_profile_menu_selection("1", available) == "default"
+    assert profiles.parse_profile_menu_selection("2", available) == "work"
+    assert profiles.parse_profile_menu_selection("3", available) == profiles.NEW_PROFILE_CHOICE
+    assert profiles.parse_profile_menu_selection("work", available) == "work"
+    assert profiles.parse_profile_menu_selection("new", available) == profiles.NEW_PROFILE_CHOICE
+    with pytest.raises(ValueError, match="unknown profile"):
+        profiles.parse_profile_menu_selection("new-work", available)
+
+
 def test_install_project_only_selected_agent_dirs(tmp_path, monkeypatch):
     root = tmp_path / ".skills"
     _skill(root / "wiki" / "beeweave-query")
@@ -207,6 +227,8 @@ def test_setup_defaults_to_project_vault_without_prompt(tmp_path, monkeypatch):
     project = tmp_path / "project"
     args = cli.build_parser().parse_args([
         "setup",
+        "--profile",
+        "default",
         "--project",
         str(project),
         "--agents",
@@ -217,10 +239,73 @@ def test_setup_defaults_to_project_vault_without_prompt(tmp_path, monkeypatch):
     assert args.func(args) == 0
     assert (project / "vault" / "concepts").is_dir()
     config = (tmp_path / ".beeweave" / "config").read_text(encoding="utf-8")
-    assert f'BEEWEAVE_VAULT_PATH="{project / "vault"}"' in config
-    assert f'BEEWEAVE_WORKBENCH_PATH="{project / "workbench"}"' in config
+    resolved_project = project.resolve()
+    assert f'BEEWEAVE_VAULT_PATH="{resolved_project / "vault"}"' in config
+    assert f'BEEWEAVE_WORKBENCH_PATH="{resolved_project / "workbench"}"' in config
     env = (project / ".env").read_text(encoding="utf-8")
     assert 'BEEWEAVE_WORKBENCH_PATH="./workbench"' in env
+
+
+def test_setup_named_profile_writes_config_name_without_activation(tmp_path, monkeypatch):
+    root = tmp_path / ".skills"
+    _skill(root / "wiki" / "beeweave-query")
+    _skill(root / "wiki" / "beeweave-update")
+    _skill(root / "wiki" / "beeweave-ingest")
+    monkeypatch.setattr(cli, "skills_dir", lambda: root)
+    monkeypatch.setattr(cli, "bootstrap_dir", lambda: None)
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
+    project = tmp_path / "work"
+
+    args = cli.build_parser().parse_args([
+        "setup",
+        "--profile",
+        "work",
+        "--project",
+        str(project),
+        "--agents",
+        "none",
+        "--no-global",
+    ])
+
+    assert args.func(args) == 0
+    named_config = tmp_path / ".beeweave" / "config.work"
+    assert named_config.is_file()
+    assert not (tmp_path / ".beeweave" / "config").exists()
+    config = named_config.read_text(encoding="utf-8")
+    resolved_project = project.resolve()
+    assert f'BEEWEAVE_VAULT_PATH="{resolved_project / "vault"}"' in config
+    assert f'BEEWEAVE_WORKBENCH_PATH="{resolved_project / "workbench"}"' in config
+
+
+def test_setup_named_profile_can_activate_default_symlink(tmp_path, monkeypatch):
+    root = tmp_path / ".skills"
+    _skill(root / "wiki" / "beeweave-query")
+    _skill(root / "wiki" / "beeweave-update")
+    _skill(root / "wiki" / "beeweave-ingest")
+    monkeypatch.setattr(cli, "skills_dir", lambda: root)
+    monkeypatch.setattr(cli, "bootstrap_dir", lambda: None)
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
+    project = tmp_path / "work"
+
+    args = cli.build_parser().parse_args([
+        "setup",
+        "--profile",
+        "work",
+        "--activate",
+        "--project",
+        str(project),
+        "--agents",
+        "none",
+        "--no-global",
+    ])
+
+    assert args.func(args) == 0
+    active_config = tmp_path / ".beeweave" / "config"
+    assert active_config.is_symlink()
+    assert active_config.readlink() == Path("config.work")
+    assert f'BEEWEAVE_VAULT_PATH="{project.resolve() / "vault"}"' in active_config.read_text(encoding="utf-8")
 
 
 def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):

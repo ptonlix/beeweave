@@ -33,7 +33,10 @@ bwe ast-extract       无需 LLM，提取代码结构
 ```bash
 bwe setup --agents claude,codex
 bwe setup --global-extra beeweave-capture
+bwe setup --profile work --activate
 bwe info
 ```
 
 请在你希望创建运行时 `vault/` 和 `workbench/` 的工作区里运行 `bwe setup`。
+
+默认情况下，setup 写入 `~/.beeweave/config`。使用 `--profile NAME` 会写入命名配置 `~/.beeweave/config.NAME`。再加 `--activate` 会让 `~/.beeweave/config` 指向这个命名 profile。交互式 setup 里可以选择 `new profile...`，然后输入新的 profile 名称。

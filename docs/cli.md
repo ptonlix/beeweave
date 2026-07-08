@@ -33,8 +33,14 @@ bwe ast-extract       extract code structure without LLM calls
 ```bash
 bwe setup --agents claude,codex
 bwe setup --global-extra beeweave-capture
+bwe setup --profile work --activate
 bwe info
 ```
 
 Run `bwe setup` from the workspace where you want runtime `vault/` and
 `workbench/` folders to be created.
+
+By default, setup writes `~/.beeweave/config`. Use `--profile NAME` to write a
+named profile at `~/.beeweave/config.NAME`. Add `--activate` to make
+`~/.beeweave/config` point to that named profile. In interactive setup, choose
+`new profile...` to enter a new profile name without leaving setup.

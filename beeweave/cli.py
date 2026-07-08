@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 
 from beeweave import __version__
+from beeweave import profiles
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
@@ -862,21 +863,30 @@ def uninstall_project(project_dir: Path, agents: list[str]) -> int:
 
 
 # ── Config ───────────────────────────────────────────────────────────────────
-def _read_config_value(key: str) -> str:
-    if not GLOBAL_CONFIG.is_file():
+def _read_config_value_from(path: Path, key: str) -> str:
+    if not path.is_file():
         return ""
-    for line in GLOBAL_CONFIG.read_text().splitlines():
+    for line in path.read_text().splitlines():
         if line.startswith(f"{key}="):
             return line.split("=", 1)[1].strip().strip('"')
     return ""
 
 
-def resolve_vault_path(cli_vault: str | None, *, default_project_vault: Path | None = None) -> str:
+def _read_config_value(key: str) -> str:
+    return _read_config_value_from(GLOBAL_CONFIG, key)
+
+
+def resolve_vault_path(
+    cli_vault: str | None,
+    *,
+    default_project_vault: Path | None = None,
+    config_path: Path | None = None,
+) -> str:
     if cli_vault:
         return os.path.expanduser(cli_vault)
     if default_project_vault is not None:
         return str(default_project_vault)
-    existing = _read_config_value("BEEWEAVE_VAULT_PATH")
+    existing = _read_config_value_from(config_path or GLOBAL_CONFIG, "BEEWEAVE_VAULT_PATH")
     if existing and existing != "/path/to/your/vault":
         return existing
     return existing
@@ -889,19 +899,20 @@ def _default_workbench_path(vault_path: str) -> str:
     return str(vault.parent / "workbench")
 
 
-def write_config(vault_path: str, workbench_path: str | None = None) -> None:
+def write_config(vault_path: str, workbench_path: str | None = None, *, config_path: Path | None = None) -> None:
     GLOBAL_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     # BEEWEAVE_REPO points at the bundled data root so skills that reference
     # framework assets (templates, references) can find them post-install.
     repo_root = skills_dir().parent
     resolved_workbench = workbench_path or _default_workbench_path(vault_path)
-    GLOBAL_CONFIG.write_text(
+    target = config_path or GLOBAL_CONFIG
+    target.write_text(
         f'BEEWEAVE_VAULT_PATH="{vault_path}"\n'
         f'BEEWEAVE_WORKBENCH_PATH="{resolved_workbench}"\n'
         f'BEEWEAVE_REPO="{repo_root}"\n'
         f'BEEWEAVE_VERSION="{__version__}"\n'
     )
-    print(f"✅  Global config written to {GLOBAL_CONFIG}")
+    print(f"✅  BeeWeave config written to {target}")
 
 
 def _check_stale() -> None:
@@ -946,26 +957,42 @@ def cmd_setup(args: argparse.Namespace) -> int:
     print("╚══════════════════════════════════════════════════╝\n")
 
     try:
+        selected_profile = profiles.choose_profile(
+            args.profile,
+            config_dir=GLOBAL_CONFIG_DIR,
+            default_config=GLOBAL_CONFIG,
+        )
+        activate_profile = profiles.choose_activate_profile(
+            selected_profile,
+            activate=args.activate,
+        )
         selected_global_extra = choose_global_extra(args.global_extra, no_global=args.no_global)
         selected_agents = choose_agents(args.agents)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+    config_path = profiles.config_path_for_profile(
+        selected_profile,
+        config_dir=GLOBAL_CONFIG_DIR,
+        default_config=GLOBAL_CONFIG,
+    )
 
     project_dir: Path | None = None
     if not args.no_project_local:
         project_dir = Path(args.project or os.getcwd()).expanduser().resolve()
 
     default_project_vault = project_dir / "vault" if project_dir is not None else None
-    vault_path = resolve_vault_path(args.vault, default_project_vault=default_project_vault)
+    vault_path = resolve_vault_path(args.vault, default_project_vault=default_project_vault, config_path=config_path)
     if vault_path:
         init_vault_layout(vault_path)
         print(f"✅  Initialized vault layout → {Path(vault_path).expanduser().resolve()}")
     workbench_path = str(project_dir / "workbench") if project_dir is not None else None
-    write_config(vault_path, workbench_path)
+    write_config(vault_path, workbench_path, config_path=config_path)
+    if selected_profile != "default" and activate_profile:
+        profiles.activate_profile(selected_profile, config_path=config_path, default_config=GLOBAL_CONFIG)
     if not vault_path:
         print("    → Vault path not set yet. Re-run with `--vault /path/to/vault`")
-        print("      or edit BEEWEAVE_VAULT_PATH in ~/.beeweave/config.")
+        print(f"      or edit BEEWEAVE_VAULT_PATH in {config_path}.")
 
     if selected_agents:
         print(f"✅  Selected agents: {', '.join(selected_agents)}")
@@ -984,6 +1011,8 @@ def cmd_setup(args: argparse.Namespace) -> int:
     print("\n───────────────────────────────────────────────────")
     print(" Setup complete!\n")
     print(f" Skills installed: {n}  (mode: {mode})")
+    print(f" Profile:          {selected_profile}")
+    print(f" Config:           {config_path}")
     if selected_agents:
         print(f" Agents:           {', '.join(selected_agents)}")
     if not args.no_global:
@@ -1315,6 +1344,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _add_setup_args(sp: argparse.ArgumentParser) -> None:
     sp.add_argument("--vault", metavar="PATH", help="path to your Obsidian vault (default: project ./vault)")
+    sp.add_argument(
+        "--profile",
+        metavar="NAME",
+        help='BeeWeave profile to write: "default" for ~/.beeweave/config, or NAME for ~/.beeweave/config.NAME',
+    )
+    sp.add_argument(
+        "--activate",
+        action="store_true",
+        help="when used with --profile NAME, make ~/.beeweave/config point to ~/.beeweave/config.NAME",
+    )
     sp.add_argument(
         "--project",
         nargs="?",

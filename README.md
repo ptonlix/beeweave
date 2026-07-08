@@ -99,6 +99,7 @@ bwe info                                      # show version, config, and instal
 bwe list                                      # list bundled skills
 bwe setup --agents claude,codex               # install for specific agents
 bwe setup --global-extra beeweave-capture     # opt into advanced global skills
+bwe setup --profile work --activate           # create ~/.beeweave/config.work and make it active
 ```
 
 To remove BeeWeave from your agents and delete BeeWeave config:
