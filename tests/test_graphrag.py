@@ -1,11 +1,11 @@
 """Tests for the GraphRAG query index module."""
+
 import json
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
-
 from beeweave.graphrag import (
     build_index,
     classify_query,
@@ -14,10 +14,10 @@ from beeweave.graphrag import (
     rank_candidates,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def vault(tmp_path):
@@ -26,9 +26,17 @@ def vault(tmp_path):
     return v
 
 
-def _page(vault: Path, name: str, *, title: str = "", summary: str = "",
-          tags: list[str] | None = None, links: list[str] | None = None,
-          tier: str = "supporting", category: str = "concepts") -> Path:
+def _page(
+    vault: Path,
+    name: str,
+    *,
+    title: str = "",
+    summary: str = "",
+    tags: list[str] | None = None,
+    links: list[str] | None = None,
+    tier: str = "supporting",
+    category: str = "concepts",
+) -> Path:
     lines = ["---", f"title: {title or name}"]
     if summary:
         lines.append(f"summary: {summary}")
@@ -38,7 +46,7 @@ def _page(vault: Path, name: str, *, title: str = "", summary: str = "",
     lines.append(f"category: {category}")
     lines.append("---")
     lines.append(f"# {title or name}")
-    for lnk in (links or []):
+    for lnk in links or []:
         lines.append(f"[[{lnk}]]")
     p = vault / f"{name}.md"
     p.write_text("\n".join(lines) + "\n")
@@ -47,24 +55,32 @@ def _page(vault: Path, name: str, *, title: str = "", summary: str = "",
 
 @pytest.fixture
 def simple_vault(vault):
-    _page(vault, "transformer", title="Transformer Architecture",
-          summary="Self-attention mechanism for sequence modelling.",
-          tags=["deep-learning", "nlp"], tier="core", links=["attention", "embedding"])
-    _page(vault, "attention", title="Attention Mechanism",
-          summary="Computes weighted sums over value vectors.",
-          tags=["deep-learning"], links=["transformer"])
-    _page(vault, "embedding", title="Word Embedding",
-          summary="Dense vector representation of tokens.",
-          tags=["nlp"])
-    _page(vault, "python", title="Python",
-          summary="General-purpose programming language.",
-          tags=["programming"])
+    _page(
+        vault,
+        "transformer",
+        title="Transformer Architecture",
+        summary="Self-attention mechanism for sequence modelling.",
+        tags=["deep-learning", "nlp"],
+        tier="core",
+        links=["attention", "embedding"],
+    )
+    _page(
+        vault,
+        "attention",
+        title="Attention Mechanism",
+        summary="Computes weighted sums over value vectors.",
+        tags=["deep-learning"],
+        links=["transformer"],
+    )
+    _page(vault, "embedding", title="Word Embedding", summary="Dense vector representation of tokens.", tags=["nlp"])
+    _page(vault, "python", title="Python", summary="General-purpose programming language.", tags=["programming"])
     return vault
 
 
 # ---------------------------------------------------------------------------
 # build_index
 # ---------------------------------------------------------------------------
+
 
 class TestBuildIndex:
     def test_returns_slugs(self, simple_vault):
@@ -117,6 +133,7 @@ class TestBuildIndex:
 # rank_candidates
 # ---------------------------------------------------------------------------
 
+
 class TestRankCandidates:
     def test_exact_title_match_scores_highest(self, simple_vault):
         idx = build_index(simple_vault)
@@ -151,6 +168,7 @@ class TestRankCandidates:
 # ---------------------------------------------------------------------------
 # find_path
 # ---------------------------------------------------------------------------
+
 
 class TestFindPath:
     def test_direct_link(self, simple_vault):
@@ -191,6 +209,7 @@ class TestFindPath:
 # classify_query
 # ---------------------------------------------------------------------------
 
+
 class TestClassifyQuery:
     def test_direct_query(self):
         qt, terms = classify_query("What is a transformer?")
@@ -220,11 +239,18 @@ class TestClassifyQuery:
 # query (integration)
 # ---------------------------------------------------------------------------
 
+
 class TestQuery:
     def test_returns_required_keys(self, simple_vault):
         result = query(simple_vault, "What is a transformer?")
-        assert set(result.keys()) >= {"answer_type", "candidates", "path",
-                                       "god_nodes_relevant", "should_read", "index_only"}
+        assert set(result.keys()) >= {
+            "answer_type",
+            "candidates",
+            "path",
+            "god_nodes_relevant",
+            "should_read",
+            "index_only",
+        }
 
     def test_finds_exact_match(self, simple_vault):
         result = query(simple_vault, "transformer architecture")
@@ -259,11 +285,13 @@ class TestQuery:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 class TestGraphQueryCLI:
     def _run(self, *args):
         return subprocess.run(
             [sys.executable, "-m", "beeweave.cli", *args],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
 
     def test_outputs_json(self, simple_vault):

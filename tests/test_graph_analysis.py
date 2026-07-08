@@ -1,12 +1,11 @@
 """Tests for vault graph analysis: community detection, god nodes, surprising connections."""
+
 import json
 import subprocess
 import sys
-import textwrap
 from pathlib import Path
 
 import pytest
-
 from beeweave.graph_analysis import (
     analyse_vault,
     dead_ends,
@@ -17,10 +16,10 @@ from beeweave.graph_analysis import (
     surprising_connections,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures — synthetic vault
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def vault(tmp_path):
@@ -62,6 +61,7 @@ def simple_vault(vault):
 # parse_vault_graph
 # ---------------------------------------------------------------------------
 
+
 class TestParseVaultGraph:
     def test_reads_wikilinks(self, simple_vault):
         outgoing, _ = parse_vault_graph(simple_vault)
@@ -101,6 +101,7 @@ class TestParseVaultGraph:
 # god_nodes
 # ---------------------------------------------------------------------------
 
+
 class TestGodNodes:
     def test_c_is_top_hub(self, simple_vault):
         outgoing, _ = parse_vault_graph(simple_vault)
@@ -125,6 +126,7 @@ class TestGodNodes:
 # dead_ends / isolated
 # ---------------------------------------------------------------------------
 
+
 class TestDeadEndsIsolated:
     def test_dead_ends(self, simple_vault):
         outgoing, _ = parse_vault_graph(simple_vault)
@@ -144,6 +146,7 @@ class TestDeadEndsIsolated:
 # ---------------------------------------------------------------------------
 # Community detection
 # ---------------------------------------------------------------------------
+
 
 class TestCommunityDetection:
     def test_returns_list_of_sets(self, simple_vault):
@@ -193,6 +196,7 @@ class TestCommunityDetection:
 # Surprising connections
 # ---------------------------------------------------------------------------
 
+
 class TestSurprisingConnections:
     def test_cross_community_edge_found(self, vault):
         # Build two tight clusters with one bridge
@@ -233,12 +237,17 @@ class TestSurprisingConnections:
 # analyse_vault (integration)
 # ---------------------------------------------------------------------------
 
+
 class TestAnalyseVault:
     def test_returns_all_keys(self, simple_vault):
         result = analyse_vault(simple_vault)
         assert set(result.keys()) == {
-            "god_nodes", "communities", "surprising_connections",
-            "dead_ends", "isolated", "stats",
+            "god_nodes",
+            "communities",
+            "surprising_connections",
+            "dead_ends",
+            "isolated",
+            "stats",
         }
 
     def test_stats_correct(self, simple_vault):
@@ -259,11 +268,13 @@ class TestAnalyseVault:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 class TestGraphAnalyseCLI:
     def test_outputs_json(self, simple_vault):
         proc = subprocess.run(
             [sys.executable, "-m", "beeweave.cli", "graph-analyse", str(simple_vault)],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert proc.returncode == 0
         data = json.loads(proc.stdout)
@@ -272,7 +283,8 @@ class TestGraphAnalyseCLI:
     def test_pretty_flag(self, simple_vault):
         proc = subprocess.run(
             [sys.executable, "-m", "beeweave.cli", "graph-analyse", str(simple_vault), "--pretty"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert proc.returncode == 0
         assert "\n  " in proc.stdout
@@ -280,7 +292,8 @@ class TestGraphAnalyseCLI:
     def test_top_flag(self, simple_vault):
         proc = subprocess.run(
             [sys.executable, "-m", "beeweave.cli", "graph-analyse", str(simple_vault), "--top", "3"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert proc.returncode == 0
         data = json.loads(proc.stdout)
@@ -289,6 +302,7 @@ class TestGraphAnalyseCLI:
     def test_missing_vault_exits_nonzero(self, tmp_path):
         proc = subprocess.run(
             [sys.executable, "-m", "beeweave.cli", "graph-analyse", str(tmp_path / "nope")],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert proc.returncode != 0

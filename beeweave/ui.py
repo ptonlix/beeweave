@@ -7,7 +7,7 @@ import sys
 import textwrap
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 ANSI = {
     "reset": "\033[0m",
@@ -72,10 +72,7 @@ def _style_kwargs() -> dict[str, Any]:
 def _to_inquirer_choices(choices: Sequence[PromptChoice]) -> list[Any]:
     from InquirerPy.base.control import Choice
 
-    return [
-        Choice(choice.value, name=choice.name, enabled=choice.enabled)
-        for choice in choices
-    ]
+    return [Choice(choice.value, name=choice.name, enabled=choice.enabled) for choice in choices]
 
 
 def select_prompt(
@@ -93,7 +90,7 @@ def select_prompt(
             message=message,
             choices=_to_inquirer_choices(choices),
             default=default,
-            instruction=instruction,
+            instruction=instruction or "",
             cycle=False,
             height=height or min(8, len(choices)),
             **_style_kwargs(),
@@ -113,7 +110,7 @@ def checkbox_prompt(
     selected = inquirer.checkbox(
         message=message,
         choices=_to_inquirer_choices(choices),
-        instruction=instruction,
+        instruction=instruction or "",
         transformer=lambda result: f"{len(result)} selected",
         cycle=False,
         height=height or min(8, len(choices)),
@@ -133,8 +130,8 @@ def text_prompt(
     return str(
         inquirer.text(
             message=message,
-            validate=validate,
-            invalid_message=invalid_message,
+            validate=cast(Any, validate),
+            invalid_message=invalid_message or "",
             **_style_kwargs(),
         ).execute()
     )

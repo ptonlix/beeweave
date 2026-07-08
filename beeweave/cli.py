@@ -17,11 +17,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from beeweave import __version__
-from beeweave import profiles
-from beeweave import ui
-from beeweave import uninstall
-from beeweave import upgrade
+from beeweave import __version__, profiles, ui, uninstall, upgrade
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
@@ -94,8 +90,7 @@ def skills_dir() -> Path:
         if cand.is_dir():
             return cand
     raise FileNotFoundError(
-        "Could not locate bundled skills. Reinstall beeweave "
-        "(`pip install --force-reinstall beeweave`)."
+        "Could not locate bundled skills. Reinstall beeweave (`pip install --force-reinstall beeweave`)."
     )
 
 
@@ -288,8 +283,7 @@ def _parse_global_extra(raw: str | None) -> list[str]:
     if unknown:
         known = ", ".join(RECOMMENDED_GLOBAL_EXTRA_SKILLS)
         raise ValueError(
-            f"unknown or unsupported global extra skill(s): {', '.join(unknown)}; "
-            f"recommended extras: {known}"
+            f"unknown or unsupported global extra skill(s): {', '.join(unknown)}; recommended extras: {known}"
         )
     available = set(list_skills())
     missing = [skill for skill in selected if skill not in available]
@@ -327,8 +321,7 @@ def _print_project_local_skill_summary() -> None:
     local_wiki = {
         name: description
         for name, description in LOCAL_WIKI_SKILL_DESCRIPTIONS.items()
-        if name not in CORE_PORTABLE_SKILLS
-        and name not in RECOMMENDED_GLOBAL_EXTRA_SKILLS
+        if name not in CORE_PORTABLE_SKILLS and name not in RECOMMENDED_GLOBAL_EXTRA_SKILLS
     }
     print("  Wiki/project-local skills:")
     for name, description in local_wiki.items():
@@ -510,7 +503,9 @@ def install_global_skills_for_agents(
 
 def install_hermes_portable(mode: str, portable: tuple[str, ...]) -> None:
     """Mirror setup.sh: install into the active and all named Hermes profiles."""
-    install_skills(HOME / ".hermes" / "skills", "~/.hermes/skills/ (Hermes default, portable)", subset=portable, mode=mode)
+    install_skills(
+        HOME / ".hermes" / "skills", "~/.hermes/skills/ (Hermes default, portable)", subset=portable, mode=mode
+    )
     hermes_home = os.environ.get("HERMES_HOME")
     handled: set[Path] = set()
     if hermes_home:
@@ -563,7 +558,7 @@ BOOTSTRAP_FILES = [
     ("github/copilot-instructions.md", ".github/copilot-instructions.md", "copilot"),
 ]
 
-AGENTS_ALIASES = {
+AGENTS_ALIASES: dict[str, tuple[str, ...]] = {
     "claude": ("CLAUDE.md",),
     "gemini": ("GEMINI.md",),
     "antigravity": ("GEMINI.md",),
@@ -619,8 +614,7 @@ def write_project_env(project_dir: Path) -> None:
     if env.exists():
         return
     env.write_text(
-        'BEEWEAVE_VAULT_PATH="./vault"\n'
-        'BEEWEAVE_WORKBENCH_PATH="./workbench"\n',
+        'BEEWEAVE_VAULT_PATH="./vault"\nBEEWEAVE_WORKBENCH_PATH="./workbench"\n',
         encoding="utf-8",
     )
     print("✅  Created project .env")
@@ -670,8 +664,8 @@ def install_project(project_dir: Path, mode: str, agents: list[str]) -> None:
 
     selected = set(agents)
     installed_bootstrap = 0
-    for rel, dest, agent in BOOTSTRAP_FILES:
-        if agent is not None and agent not in selected:
+    for rel, dest, bootstrap_agent in BOOTSTRAP_FILES:
+        if bootstrap_agent is not None and bootstrap_agent not in selected:
             continue
         src = _resolve_bootstrap_src(boot_root, rel)
         if src is None:
@@ -687,11 +681,7 @@ def install_project(project_dir: Path, mode: str, agents: list[str]) -> None:
     print(f"✅  Installed {installed_bootstrap} bootstrap context file(s)")
 
     # AGENTS.md aliases as relative symlinks (copy fallback for symlink-hostile FS).
-    aliases = sorted({
-        alias
-        for agent in agents
-        for alias in AGENTS_ALIASES.get(agent, ())
-    })
+    aliases = sorted({alias for agent in agents for alias in AGENTS_ALIASES.get(agent, ())})
     for alias in aliases:
         link = project_dir / alias
         if link.is_symlink() or link.exists():
@@ -761,8 +751,7 @@ def _check_stale() -> None:
     """Warn if the installed version doesn't match when setup last ran, or if skills are missing."""
     if not GLOBAL_CONFIG.is_file():
         print(
-            f"⚠️  BeeWeave {__version__} is installed but setup has never been run.\n"
-            f"   Run: bwe setup",
+            f"⚠️  BeeWeave {__version__} is installed but setup has never been run.\n   Run: bwe setup",
             file=sys.stderr,
         )
         return
@@ -928,6 +917,7 @@ def cmd_uninstall(args: argparse.Namespace) -> int:
 
 def cmd_graph_query(args: argparse.Namespace) -> int:
     from beeweave.graphrag import query
+
     vault = Path(args.vault).expanduser().resolve()
     if not vault.is_dir():
         print(f"error: vault not found: {vault}", file=sys.stderr)
@@ -942,6 +932,7 @@ def cmd_graph_query(args: argparse.Namespace) -> int:
 
 def cmd_batch_plan(args: argparse.Namespace) -> int:
     from beeweave.batch import plan_batches
+
     source_dir = Path(args.source_dir).expanduser().resolve()
     vault = Path(args.vault).expanduser().resolve()
     if not source_dir.is_dir():
@@ -964,6 +955,7 @@ def cmd_batch_plan(args: argparse.Namespace) -> int:
 
 def cmd_graph_analyse(args: argparse.Namespace) -> int:
     from beeweave.graph_analysis import analyse_vault
+
     vault = Path(args.vault).expanduser().resolve()
     if not vault.is_dir():
         print(f"error: vault not found: {vault}", file=sys.stderr)
@@ -978,6 +970,7 @@ def cmd_graph_analyse(args: argparse.Namespace) -> int:
 
 def cmd_cache_check(args: argparse.Namespace) -> int:
     from beeweave.cache import check_sources
+
     vault = Path(args.vault).expanduser().resolve()
     sources = [Path(p).expanduser().resolve() for p in args.sources]
     result = check_sources(vault, sources)
@@ -990,6 +983,7 @@ def cmd_cache_check(args: argparse.Namespace) -> int:
 
 def cmd_cache_update(args: argparse.Namespace) -> int:
     from beeweave.cache import update_source
+
     vault = Path(args.vault).expanduser().resolve()
     source = Path(args.source).expanduser().resolve()
     pages = args.pages or []
@@ -1000,6 +994,7 @@ def cmd_cache_update(args: argparse.Namespace) -> int:
 
 def cmd_cache_hash(args: argparse.Namespace) -> int:
     from beeweave.cache import hash_file
+
     path = Path(args.path).expanduser().resolve()
     if not path.exists():
         print(f"error: {path} does not exist", file=sys.stderr)
@@ -1010,7 +1005,9 @@ def cmd_cache_hash(args: argparse.Namespace) -> int:
 
 def cmd_ast_extract(args: argparse.Namespace) -> int:
     from pathlib import Path
+
     from beeweave.ast_extractor import extract
+
     path = Path(args.path).expanduser().resolve()
     try:
         result = extract(path)
@@ -1046,7 +1043,7 @@ def cmd_info(args: argparse.Namespace) -> int:
     recommended_extra_set = set(RECOMMENDED_GLOBAL_EXTRA_SKILLS)
     seen_dirs: set[str] = set()
     agent_statuses: list[str] = []
-    for agent, meta in AGENTS.items():
+    for _agent, meta in AGENTS.items():
         rel = meta["global"]
         if rel is None or rel in seen_dirs:
             continue
@@ -1125,7 +1122,7 @@ def _bundled_skills_readable() -> tuple[bool, str]:
         if sample is None:
             return False, f"no bundled skills found under {root}"
         skill_file = sample / "SKILL.md"
-        skill_file.stat().st_mtime
+        skill_file.stat()
     except (FileNotFoundError, OSError, RuntimeError, StopIteration) as exc:
         return False, str(exc)
     return True, str(skill_file)
@@ -1259,7 +1256,11 @@ def cmd_profile_set_default(args: argparse.Namespace) -> int:
         return 1
 
     now = datetime.now()
-    backup = profiles.backup_path_for_default(GLOBAL_CONFIG, now=now) if GLOBAL_CONFIG.exists() or GLOBAL_CONFIG.is_symlink() else None
+    backup = (
+        profiles.backup_path_for_default(GLOBAL_CONFIG, now=now)
+        if GLOBAL_CONFIG.exists() or GLOBAL_CONFIG.is_symlink()
+        else None
+    )
     print("Set BeeWeave default profile")
     print(f"  Source: {source}")
     print(f"  Target: {GLOBAL_CONFIG}")
@@ -1345,7 +1346,9 @@ def build_parser() -> argparse.ArgumentParser:
     bp.add_argument("--max-mb", type=float, default=2.0, help="max MB per batch (default: 2)")
     bp.add_argument("--max-files", type=int, default=20, help="max files per batch (default: 20)")
     bp.add_argument("--no-cache", action="store_true", help="disable manifest-based skip of unchanged files")
-    bp.add_argument("--include-code", action="store_true", help="include code files (default: excluded; use ast-extract instead)")
+    bp.add_argument(
+        "--include-code", action="store_true", help="include code files (default: excluded; use ast-extract instead)"
+    )
     bp.add_argument("--pretty", action="store_true", help="pretty-print JSON output")
     bp.set_defaults(func=cmd_batch_plan)
 
@@ -1407,8 +1410,7 @@ def _add_setup_args(sp: argparse.ArgumentParser) -> None:
         const="",
         default=None,
         metavar="DIR",
-        help="project directory for vault/workbench and project-local skills "
-        "(defaults to the current directory)",
+        help="project directory for vault/workbench and project-local skills (defaults to the current directory)",
     )
     sp.add_argument(
         "--agents",
@@ -1425,8 +1427,7 @@ def _add_setup_args(sp: argparse.ArgumentParser) -> None:
         "--global-extra",
         metavar="LIST",
         help="comma-separated optional global skills to install in addition to "
-        "beeweave-update,beeweave-query,beeweave-ingest; supported: "
-        + ",".join(RECOMMENDED_GLOBAL_EXTRA_SKILLS),
+        "beeweave-update,beeweave-query,beeweave-ingest; supported: " + ",".join(RECOMMENDED_GLOBAL_EXTRA_SKILLS),
     )
     sp.add_argument(
         "--no-project-local",
@@ -1450,8 +1451,7 @@ def _add_uninstall_args(sp: argparse.ArgumentParser) -> None:
     sp.add_argument(
         "--agents",
         metavar="LIST",
-        help='agents to uninstall from: comma-separated names, "all", or "none" '
-        '(default: "all")',
+        help='agents to uninstall from: comma-separated names, "all", or "none" (default: "all")',
     )
     sp.add_argument(
         "--project",
@@ -1459,8 +1459,7 @@ def _add_uninstall_args(sp: argparse.ArgumentParser) -> None:
         const="",
         default=None,
         metavar="DIR",
-        help="project directory to clean project-local skills/bootstrap files "
-        "(defaults to the current directory)",
+        help="project directory to clean project-local skills/bootstrap files (defaults to the current directory)",
     )
     sp.add_argument(
         "--no-global",

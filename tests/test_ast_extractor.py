@@ -1,23 +1,23 @@
 """Tests for the local AST code extractor."""
+
 import json
 import subprocess
 import sys
 import textwrap
-from pathlib import Path
 
 import pytest
-
-from beeweave.ast_extractor import extract, extract_file, extract_directory
-
+from beeweave.ast_extractor import extract, extract_directory, extract_file
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def tmp_py(tmp_path):
     src = tmp_path / "sample.py"
-    src.write_text(textwrap.dedent("""\
+    src.write_text(
+        textwrap.dedent("""\
         import os
         from pathlib import Path
 
@@ -29,14 +29,16 @@ def tmp_py(tmp_path):
 
         def fetch(item):
             return item
-    """))
+    """)
+    )
     return src
 
 
 @pytest.fixture
 def tmp_js(tmp_path):
     src = tmp_path / "app.js"
-    src.write_text(textwrap.dedent("""\
+    src.write_text(
+        textwrap.dedent("""\
         import { foo } from './utils';
 
         class Widget extends Base {
@@ -44,7 +46,8 @@ def tmp_js(tmp_path):
         }
 
         function init() {}
-    """))
+    """)
+    )
     return src
 
 
@@ -56,6 +59,7 @@ def tmp_dir(tmp_path, tmp_py, tmp_js):
 # ---------------------------------------------------------------------------
 # Unit tests
 # ---------------------------------------------------------------------------
+
 
 class TestExtractFile:
     def test_python_classes(self, tmp_py):
@@ -77,8 +81,7 @@ class TestExtractFile:
 
     def test_python_inheritance_edge(self, tmp_py):
         g = extract_file(tmp_py)
-        relations = {(e.source.split("::")[-1], e.target.split("::")[-1], e.relation)
-                     for e in g.edges}
+        relations = {(e.source.split("::")[-1], e.target.split("::")[-1], e.relation) for e in g.edges}
         assert ("Dog", "Animal", "inherits") in relations
 
     def test_javascript_class_and_function(self, tmp_js):
@@ -89,8 +92,7 @@ class TestExtractFile:
 
     def test_javascript_inheritance(self, tmp_js):
         g = extract_file(tmp_js)
-        relations = {(e.source.split("::")[-1], e.target.split("::")[-1], e.relation)
-                     for e in g.edges}
+        relations = {(e.source.split("::")[-1], e.target.split("::")[-1], e.relation) for e in g.edges}
         assert ("Widget", "Base", "inherits") in relations
 
     def test_file_node_present(self, tmp_py):
@@ -151,7 +153,8 @@ class TestCLI:
     def test_cli_ast_extract_file(self, tmp_py):
         proc = subprocess.run(
             [sys.executable, "-m", "beeweave.cli", "ast-extract", str(tmp_py)],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert proc.returncode == 0
         data = json.loads(proc.stdout)
@@ -160,7 +163,8 @@ class TestCLI:
     def test_cli_ast_extract_pretty(self, tmp_py):
         proc = subprocess.run(
             [sys.executable, "-m", "beeweave.cli", "ast-extract", str(tmp_py), "--pretty"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert proc.returncode == 0
         # Pretty mode produces indented JSON
@@ -169,6 +173,7 @@ class TestCLI:
     def test_cli_missing_path_exits_nonzero(self, tmp_path):
         proc = subprocess.run(
             [sys.executable, "-m", "beeweave.cli", "ast-extract", str(tmp_path / "nope.py")],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert proc.returncode != 0

@@ -1,15 +1,10 @@
-from pathlib import Path
 import re
 from datetime import datetime
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
-from beeweave import cli
-from beeweave import profiles
-from beeweave import ui
-from beeweave import uninstall
-
+from beeweave import cli, profiles, ui, uninstall
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -157,11 +152,14 @@ def test_profile_labels_show_file_targets(tmp_path):
 def test_choose_profile_defaults_without_interactive_prompt(tmp_path, monkeypatch):
     monkeypatch.setattr(profiles.sys.stdin, "isatty", lambda: False)
 
-    assert profiles.choose_profile(
-        None,
-        config_dir=tmp_path / ".beeweave",
-        default_config=tmp_path / ".beeweave" / "config",
-    ) == "default"
+    assert (
+        profiles.choose_profile(
+            None,
+            config_dir=tmp_path / ".beeweave",
+            default_config=tmp_path / ".beeweave" / "config",
+        )
+        == "default"
+    )
 
 
 def test_choose_profile_select_validates_new_profile(tmp_path, monkeypatch):
@@ -353,16 +351,18 @@ def test_setup_summary_points_to_direct_skill_usage(tmp_path, monkeypatch, capsy
     monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
     monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
 
-    args = cli.build_parser().parse_args([
-        "setup",
-        "--vault",
-        str(tmp_path / "vault"),
-        "--project",
-        str(tmp_path / "project"),
-        "--agents",
-        "none",
-        "--no-global",
-    ])
+    args = cli.build_parser().parse_args(
+        [
+            "setup",
+            "--vault",
+            str(tmp_path / "vault"),
+            "--project",
+            str(tmp_path / "project"),
+            "--agents",
+            "none",
+            "--no-global",
+        ]
+    )
 
     assert args.func(args) == 0
     output = capsys.readouterr().out
@@ -391,17 +391,19 @@ def test_setup_global_only_summary_omits_project_paths(tmp_path, monkeypatch, ca
     monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
     monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
 
-    args = cli.build_parser().parse_args([
-        "setup",
-        "--profile",
-        "work",
-        "--vault",
-        str(tmp_path / "vault"),
-        "--agents",
-        "none",
-        "--no-global",
-        "--no-project-local",
-    ])
+    args = cli.build_parser().parse_args(
+        [
+            "setup",
+            "--profile",
+            "work",
+            "--vault",
+            str(tmp_path / "vault"),
+            "--agents",
+            "none",
+            "--no-global",
+            "--no-project-local",
+        ]
+    )
 
     assert args.func(args) == 0
     output = capsys.readouterr().out
@@ -434,16 +436,18 @@ def test_setup_defaults_to_project_vault_without_prompt(tmp_path, monkeypatch):
 
     monkeypatch.setattr("builtins.input", fail_input)
     project = tmp_path / "project"
-    args = cli.build_parser().parse_args([
-        "setup",
-        "--profile",
-        "default",
-        "--project",
-        str(project),
-        "--agents",
-        "none",
-        "--no-global",
-    ])
+    args = cli.build_parser().parse_args(
+        [
+            "setup",
+            "--profile",
+            "default",
+            "--project",
+            str(project),
+            "--agents",
+            "none",
+            "--no-global",
+        ]
+    )
 
     assert args.func(args) == 0
     assert (project / "vault" / "concepts").is_dir()
@@ -466,16 +470,18 @@ def test_setup_named_profile_writes_config_name_without_activation(tmp_path, mon
     monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
     project = tmp_path / "work"
 
-    args = cli.build_parser().parse_args([
-        "setup",
-        "--profile",
-        "work",
-        "--project",
-        str(project),
-        "--agents",
-        "none",
-        "--no-global",
-    ])
+    args = cli.build_parser().parse_args(
+        [
+            "setup",
+            "--profile",
+            "work",
+            "--project",
+            str(project),
+            "--agents",
+            "none",
+            "--no-global",
+        ]
+    )
 
     assert args.func(args) == 0
     named_config = tmp_path / ".beeweave" / "config.work"
@@ -558,13 +564,15 @@ def test_uninstall_removes_global_skills_and_config_only(tmp_path, monkeypatch, 
     (tmp_path / ".beeweave" / "config").write_text("BEEWEAVE_VAULT_PATH=/vault\n", encoding="utf-8")
     (tmp_path / ".beeweave" / "sync.log").write_text("log\n", encoding="utf-8")
 
-    args = cli.build_parser().parse_args([
-        "uninstall",
-        "--agents",
-        "claude,codex",
-        "--no-project-local",
-        "--yes",
-    ])
+    args = cli.build_parser().parse_args(
+        [
+            "uninstall",
+            "--agents",
+            "claude,codex",
+            "--no-project-local",
+            "--yes",
+        ]
+    )
 
     assert args.func(args) == 0
     output = capsys.readouterr().out
@@ -597,16 +605,18 @@ def test_uninstall_project_removes_managed_files_but_keeps_user_data(tmp_path, m
     (project / "vault" / "concepts" / "note.md").write_text("keep\n", encoding="utf-8")
     (project / "workbench" / "library" / "source.md").write_text("keep\n", encoding="utf-8")
 
-    args = cli.build_parser().parse_args([
-        "uninstall",
-        "--agents",
-        "claude",
-        "--project",
-        str(project),
-        "--no-global",
-        "--keep-config",
-        "--yes",
-    ])
+    args = cli.build_parser().parse_args(
+        [
+            "uninstall",
+            "--agents",
+            "claude",
+            "--project",
+            str(project),
+            "--no-global",
+            "--keep-config",
+            "--yes",
+        ]
+    )
 
     assert args.func(args) == 0
     assert not (project / ".claude" / "skills" / "beeweave-query").exists()
@@ -642,13 +652,11 @@ def test_uninstall_all_removes_projects_from_all_profile_configs(tmp_path, monke
     config_dir = tmp_path / ".beeweave"
     config_dir.mkdir()
     (config_dir / "config").write_text(
-        f'BEEWEAVE_VAULT_PATH="{work / "vault"}"\n'
-        f'BEEWEAVE_WORKBENCH_PATH="{work / "workbench"}"\n',
+        f'BEEWEAVE_VAULT_PATH="{work / "vault"}"\nBEEWEAVE_WORKBENCH_PATH="{work / "workbench"}"\n',
         encoding="utf-8",
     )
     (config_dir / "config.workspace").write_text(
-        f'BEEWEAVE_VAULT_PATH="{workspace / "vault"}"\n'
-        f'BEEWEAVE_WORKBENCH_PATH="{workspace / "workbench"}"\n',
+        f'BEEWEAVE_VAULT_PATH="{workspace / "vault"}"\nBEEWEAVE_WORKBENCH_PATH="{workspace / "workbench"}"\n',
         encoding="utf-8",
     )
     (config_dir / "config.backup-20260708-123045").write_text(
@@ -656,16 +664,18 @@ def test_uninstall_all_removes_projects_from_all_profile_configs(tmp_path, monke
         encoding="utf-8",
     )
 
-    args = cli.build_parser().parse_args([
-        "uninstall",
-        "--agents",
-        "claude",
-        "--project",
-        str(current),
-        "--no-global",
-        "--all",
-        "--yes",
-    ])
+    args = cli.build_parser().parse_args(
+        [
+            "uninstall",
+            "--agents",
+            "claude",
+            "--project",
+            str(current),
+            "--no-global",
+            "--all",
+            "--yes",
+        ]
+    )
 
     assert args.func(args) == 0
     output = capsys.readouterr().out
@@ -700,9 +710,7 @@ def test_info_uses_summary_panel_fields(tmp_path, monkeypatch, capsys):
 
     (tmp_path / ".beeweave").mkdir()
     (tmp_path / ".beeweave" / "config").write_text(
-        'BEEWEAVE_VAULT_PATH="/vault"\n'
-        'BEEWEAVE_WORKBENCH_PATH="/workbench"\n'
-        'BEEWEAVE_VERSION="test-version"\n',
+        'BEEWEAVE_VAULT_PATH="/vault"\nBEEWEAVE_WORKBENCH_PATH="/workbench"\nBEEWEAVE_VERSION="test-version"\n',
         encoding="utf-8",
     )
 
@@ -737,14 +745,17 @@ def test_uninstall_confirmation_uses_inquirerpy(monkeypatch):
     fake_inquirer = SimpleNamespace(confirm=fake_confirm)
     monkeypatch.setitem(cli.sys.modules, "InquirerPy", SimpleNamespace(inquirer=fake_inquirer))
 
-    assert uninstall.confirm_uninstall(
-        yes=args.yes,
-        no_global=args.no_global,
-        keep_config=args.keep_config,
-        agents=["claude"],
-        project_dirs=[],
-        config_dir=cli.GLOBAL_CONFIG_DIR,
-    ) is True
+    assert (
+        uninstall.confirm_uninstall(
+            yes=args.yes,
+            no_global=args.no_global,
+            keep_config=args.keep_config,
+            agents=["claude"],
+            project_dirs=[],
+            config_dir=cli.GLOBAL_CONFIG_DIR,
+        )
+        is True
+    )
 
 
 def test_every_agent_can_install_project_local_skills(tmp_path, monkeypatch):
@@ -789,9 +800,9 @@ def test_pyproject_exposes_only_bwe_console_script():
 
 def test_project_cli_references_in_skills_use_bwe():
     stale_patterns = (
-        "obsidian" "-wiki",
-        "python3 -m " "obsidian" "_wiki",
-        "python -m " "obsidian" "_wiki",
+        "obsidian-wiki",
+        "python3 -m obsidian_wiki",
+        "python -m obsidian_wiki",
     )
     stale = []
     for skill_file in sorted((ROOT / ".skills").glob("*/*/SKILL.md")):
@@ -883,8 +894,7 @@ def test_runtime_sources_do_not_reference_old_skill_names():
         scan_files.extend(
             path
             for path in scan_root.rglob("*")
-            if path.is_file()
-            and path.suffix in {".md", ".py", ".sh", ".json", ".mdc", ".yml", ".yaml"}
+            if path.is_file() and path.suffix in {".md", ".py", ".sh", ".json", ".mdc", ".yml", ".yaml"}
         )
 
     stale = []

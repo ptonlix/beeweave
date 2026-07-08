@@ -87,10 +87,13 @@ Do not generate `.hermes.md`; Hermes supports `HERMES.md`.
 Use focused checks while editing, then run the full suite when behavior changes:
 
 ```bash
-uv run pytest
+make check
 uv run bwe setup --help
 uv run bwe info
 ```
+
+`make check` runs Ruff formatting/lint checks, mypy, and pytest. Use
+`make format` before committing Python code changes.
 
 For OpenSpec changes, also run:
 

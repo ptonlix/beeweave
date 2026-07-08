@@ -10,34 +10,35 @@ extraction on the same languages. Falls back to regex automatically.
 
 from __future__ import annotations
 
-import hashlib
-import json
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator
 
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Node:
     id: str
     label: str
-    kind: str          # "class" | "function" | "import" | "file"
+    kind: str  # "class" | "function" | "import" | "file"
     file: str
     line: int = 0
     language: str = ""
     docstring: str = ""
 
+
 @dataclass
 class Edge:
     source: str
     target: str
-    relation: str      # "imports" | "calls" | "inherits" | "defines"
+    relation: str  # "imports" | "calls" | "inherits" | "defines"
     confidence: str = "EXTRACTED"
     source_file: str = ""
+
 
 @dataclass
 class Graph:
@@ -45,7 +46,7 @@ class Graph:
     edges: list[Edge] = field(default_factory=list)
     stats: dict = field(default_factory=dict)
 
-    def merge(self, other: "Graph") -> None:
+    def merge(self, other: Graph) -> None:
         seen_nodes = {n.id for n in self.nodes}
         seen_edges = {(e.source, e.target, e.relation) for e in self.edges}
         for n in other.nodes:
@@ -108,6 +109,7 @@ class Graph:
 # Language pattern definitions
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class LangSpec:
     extensions: tuple[str, ...]
@@ -115,7 +117,7 @@ class LangSpec:
     class_pat: str
     func_pat: str
     import_pats: tuple[str, ...]
-    inherit_pat: str = ""    # optional group(1)=child group(2)=parent
+    inherit_pat: str = ""  # optional group(1)=child group(2)=parent
     docstring_pat: str = ""  # line immediately after def/class
 
 
@@ -240,15 +242,59 @@ CODE_EXTENSIONS = frozenset(_EXT_TO_LANG.keys())
 
 # Extensions we skip entirely (binary, generated, etc.)
 SKIP_EXTENSIONS = frozenset(
-    ".pyc .pyo .pyd .so .dylib .dll .exe .class .jar .war .egg "
-    ".zip .tar .gz .bz2 .whl .lock .png .jpg .jpeg .gif .ico .svg "
-    ".pdf .mp4 .mov .mp3 .wav .ttf .woff .eot".split()
+    [
+        ".pyc",
+        ".pyo",
+        ".pyd",
+        ".so",
+        ".dylib",
+        ".dll",
+        ".exe",
+        ".class",
+        ".jar",
+        ".war",
+        ".egg",
+        ".zip",
+        ".tar",
+        ".gz",
+        ".bz2",
+        ".whl",
+        ".lock",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".ico",
+        ".svg",
+        ".pdf",
+        ".mp4",
+        ".mov",
+        ".mp3",
+        ".wav",
+        ".ttf",
+        ".woff",
+        ".eot",
+    ]
 )
 
 # Directories to skip (mirrors .gitignore defaults)
 SKIP_DIRS = frozenset(
-    "node_modules .git __pycache__ .pytest_cache dist build target "
-    ".venv venv env .mypy_cache .ruff_cache coverage .tox".split()
+    [
+        "node_modules",
+        ".git",
+        "__pycache__",
+        ".pytest_cache",
+        "dist",
+        "build",
+        "target",
+        ".venv",
+        "venv",
+        "env",
+        ".mypy_cache",
+        ".ruff_cache",
+        "coverage",
+        ".tox",
+    ]
 )
 
 
@@ -272,8 +318,7 @@ def extract_file(path: Path, root: Path | None = None) -> Graph:
 
     graph = Graph()
     file_node_id = rel
-    graph.nodes.append(Node(id=file_node_id, label=path.name, kind="file",
-                            file=rel, language=spec.name))
+    graph.nodes.append(Node(id=file_node_id, label=path.name, kind="file", file=rel, language=spec.name))
 
     lines = text.splitlines()
     for i, line in enumerate(lines, start=1):
@@ -286,10 +331,8 @@ def extract_file(path: Path, root: Path | None = None) -> Graph:
                 name = next((g for g in m.groups() if g), None)
                 if name:
                     nid = _file_id(rel, name)
-                    graph.nodes.append(Node(id=nid, label=name, kind="class",
-                                            file=rel, line=i, language=spec.name))
-                    graph.edges.append(Edge(source=file_node_id, target=nid,
-                                            relation="defines", source_file=rel))
+                    graph.nodes.append(Node(id=nid, label=name, kind="class", file=rel, line=i, language=spec.name))
+                    graph.edges.append(Edge(source=file_node_id, target=nid, relation="defines", source_file=rel))
 
         # Functions / methods
         if spec.func_pat:
@@ -298,10 +341,8 @@ def extract_file(path: Path, root: Path | None = None) -> Graph:
                 name = next((g for g in m.groups() if g), None)
                 if name and not name.startswith("_"):  # skip private/dunder
                     nid = _file_id(rel, name)
-                    graph.nodes.append(Node(id=nid, label=name, kind="function",
-                                            file=rel, line=i, language=spec.name))
-                    graph.edges.append(Edge(source=file_node_id, target=nid,
-                                            relation="defines", source_file=rel))
+                    graph.nodes.append(Node(id=nid, label=name, kind="function", file=rel, line=i, language=spec.name))
+                    graph.edges.append(Edge(source=file_node_id, target=nid, relation="defines", source_file=rel))
 
         # Imports
         for pat in spec.import_pats:
@@ -311,10 +352,10 @@ def extract_file(path: Path, root: Path | None = None) -> Graph:
                 if target:
                     nid = f"import::{target}"
                     if not any(n.id == nid for n in graph.nodes):
-                        graph.nodes.append(Node(id=nid, label=target, kind="import",
-                                                file=rel, line=i, language=spec.name))
-                    graph.edges.append(Edge(source=file_node_id, target=nid,
-                                            relation="imports", source_file=rel))
+                        graph.nodes.append(
+                            Node(id=nid, label=target, kind="import", file=rel, line=i, language=spec.name)
+                        )
+                    graph.edges.append(Edge(source=file_node_id, target=nid, relation="imports", source_file=rel))
                 break
 
         # Inheritance
@@ -325,10 +366,15 @@ def extract_file(path: Path, root: Path | None = None) -> Graph:
                 if child and parent:
                     child_id = _file_id(rel, child)
                     parent_id = _file_id(rel, parent)
-                    graph.edges.append(Edge(source=child_id, target=parent_id,
-                                            relation="inherits",
-                                            confidence="EXTRACTED",
-                                            source_file=rel))
+                    graph.edges.append(
+                        Edge(
+                            source=child_id,
+                            target=parent_id,
+                            relation="inherits",
+                            confidence="EXTRACTED",
+                            source_file=rel,
+                        )
+                    )
 
     return graph
 
@@ -336,6 +382,7 @@ def extract_file(path: Path, root: Path | None = None) -> Graph:
 # ---------------------------------------------------------------------------
 # Directory extraction
 # ---------------------------------------------------------------------------
+
 
 def _walk_code_files(root: Path) -> Iterator[Path]:
     for dirpath, dirnames, filenames in root.walk() if hasattr(root, "walk") else _os_walk(root):
@@ -348,6 +395,7 @@ def _walk_code_files(root: Path) -> Iterator[Path]:
 
 def _os_walk(root: Path):
     import os
+
     for dirpath, dirnames, filenames in os.walk(root):
         yield Path(dirpath), dirnames, filenames
 
@@ -375,6 +423,7 @@ def extract_directory(root: Path, *, max_files: int = 2000) -> Graph:
 # ---------------------------------------------------------------------------
 # Convenience entry point (used by the CLI)
 # ---------------------------------------------------------------------------
+
 
 def extract(path: Path) -> dict:
     """Extract from a file or directory, return serialisable dict."""

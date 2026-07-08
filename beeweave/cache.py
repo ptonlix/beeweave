@@ -21,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from contextlib import suppress
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
@@ -36,7 +37,7 @@ class CheckResult(TypedDict):
     new: list[str]
     modified: list[str]
     unchanged: list[str]
-    missing: list[str]   # in manifest but file no longer on disk
+    missing: list[str]  # in manifest but file no longer on disk
 
 
 def _manifest_path(vault: Path) -> Path:
@@ -58,10 +59,8 @@ def _save_manifest(vault: Path, sources: dict[str, SourceEntry]) -> None:
     mp = _manifest_path(vault)
     existing: dict = {}
     if mp.exists():
-        try:
+        with suppress(json.JSONDecodeError, OSError):
             existing = json.loads(mp.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            pass
     existing["sources"] = sources
     mp.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
 

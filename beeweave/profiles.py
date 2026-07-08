@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import sys
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -126,7 +126,7 @@ def choose_profile_select(*, config_dir: Path, default_config: Path) -> str:
     def validate_name(value: str) -> bool | str:
         try:
             parse_profile(value)
-        except ValueError as exc:
+        except ValueError:
             return False
         return True
 

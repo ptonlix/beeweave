@@ -44,25 +44,85 @@ from typing import Any
 
 # Ingestible text/doc extensions
 TEXT_EXTENSIONS = frozenset(
-    ".md .mdx .txt .rst .html .htm .csv .tsv .json .jsonl .yaml .yml .xml".split()
+    [".md", ".mdx", ".txt", ".rst", ".html", ".htm", ".csv", ".tsv", ".json", ".jsonl", ".yaml", ".yml", ".xml"]
 )
-PDF_EXTENSIONS = frozenset(".pdf".split())
-IMAGE_EXTENSIONS = frozenset(".png .jpg .jpeg .webp .gif .bmp .tiff .svg".split())
-OFFICE_EXTENSIONS = frozenset(".docx .xlsx .pptx .odt .ods .odp".split())
+PDF_EXTENSIONS = frozenset([".pdf"])
+IMAGE_EXTENSIONS = frozenset([".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tiff", ".svg"])
+OFFICE_EXTENSIONS = frozenset([".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"])
 CODE_EXTENSIONS = frozenset(
-    ".py .ts .js .jsx .tsx .go .rs .java .kt .rb .c .cpp .h .hpp .swift .sh".split()
+    [
+        ".py",
+        ".ts",
+        ".js",
+        ".jsx",
+        ".tsx",
+        ".go",
+        ".rs",
+        ".java",
+        ".kt",
+        ".rb",
+        ".c",
+        ".cpp",
+        ".h",
+        ".hpp",
+        ".swift",
+        ".sh",
+    ]
 )
 
 # Binary / generated — skip entirely
 SKIP_EXTENSIONS = frozenset(
-    ".pyc .pyo .pyd .so .dylib .dll .exe .class .jar .war .egg "
-    ".zip .tar .gz .bz2 .whl .lock .mp4 .mov .mp3 .wav .ttf .woff .eot".split()
+    [
+        ".pyc",
+        ".pyo",
+        ".pyd",
+        ".so",
+        ".dylib",
+        ".dll",
+        ".exe",
+        ".class",
+        ".jar",
+        ".war",
+        ".egg",
+        ".zip",
+        ".tar",
+        ".gz",
+        ".bz2",
+        ".whl",
+        ".lock",
+        ".mp4",
+        ".mov",
+        ".mp3",
+        ".wav",
+        ".ttf",
+        ".woff",
+        ".eot",
+    ]
 )
 
 SKIP_DIRS = frozenset(
-    "node_modules .git __pycache__ .pytest_cache dist build target "
-    ".venv venv env .mypy_cache .ruff_cache coverage .tox .obsidian "
-    "_meta _raw _archived _staging _archives".split()
+    [
+        "node_modules",
+        ".git",
+        "__pycache__",
+        ".pytest_cache",
+        "dist",
+        "build",
+        "target",
+        ".venv",
+        "venv",
+        "env",
+        ".mypy_cache",
+        ".ruff_cache",
+        "coverage",
+        ".tox",
+        ".obsidian",
+        "_meta",
+        "_raw",
+        "_archived",
+        "_staging",
+        "_archives",
+    ]
 )
 
 
@@ -98,6 +158,7 @@ def _file_size(path: Path) -> int:
 # Source discovery
 # ---------------------------------------------------------------------------
 
+
 def discover_sources(
     source_dir: Path,
     *,
@@ -118,10 +179,7 @@ def discover_sources(
             relative_parts = current.parts
         if any(part in SKIP_DIRS or part.startswith(".") for part in relative_parts):
             continue
-        dirnames[:] = [
-            d for d in dirnames
-            if d not in SKIP_DIRS and not d.startswith(".")
-        ]
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".")]
         for fn in sorted(filenames):
             p = Path(dirpath) / fn
             kind = _classify(p)
@@ -137,13 +195,15 @@ def discover_sources(
 # Manifest filtering (skip unchanged sources)
 # ---------------------------------------------------------------------------
 
+
 def _filter_unchanged(
     files: list[dict],
     vault: Path,
 ) -> tuple[list[dict], int]:
     """Remove files whose hash matches the manifest. Returns (to_ingest, skipped_count)."""
     try:
-        from beeweave.cache import check_sources, compute_hash
+        from beeweave.cache import check_sources
+
         paths = [Path(f["path"]) for f in files]
         result = check_sources(vault, paths)
         unchanged_set = set(result["unchanged"])
@@ -165,12 +225,14 @@ def _filter_assets_for_unchanged_articles(
     """
     try:
         from beeweave.cache import check_sources
-        index_paths = sorted({
-            str(Path(f["path"]).parent.parent / "index.md")
-            for f in files
-            if Path(f["path"]).parent.name == "assets"
-            and (Path(f["path"]).parent.parent / "index.md").is_file()
-        })
+
+        index_paths = sorted(
+            {
+                str(Path(f["path"]).parent.parent / "index.md")
+                for f in files
+                if Path(f["path"]).parent.name == "assets" and (Path(f["path"]).parent.parent / "index.md").is_file()
+            }
+        )
         if not index_paths:
             return files, 0
         result = check_sources(vault, [Path(p) for p in index_paths])
@@ -179,10 +241,7 @@ def _filter_assets_for_unchanged_articles(
         skipped = 0
         for f in files:
             path = Path(f["path"])
-            if (
-                path.parent.name == "assets"
-                and str(path.parent.parent) in unchanged_dirs
-            ):
+            if path.parent.name == "assets" and str(path.parent.parent) in unchanged_dirs:
                 skipped += 1
                 continue
             filtered.append(f)
@@ -194,6 +253,7 @@ def _filter_assets_for_unchanged_articles(
 # ---------------------------------------------------------------------------
 # Batch splitting
 # ---------------------------------------------------------------------------
+
 
 def _make_batches(
     files: list[dict],
@@ -208,10 +268,7 @@ def _make_batches(
 
     for f in files:
         sz = f["size_bytes"]
-        if current and (
-            current_bytes + sz > max_batch_bytes
-            or len(current) >= max_batch_files
-        ):
+        if current and (current_bytes + sz > max_batch_bytes or len(current) >= max_batch_files):
             batches.append(current)
             current = []
             current_bytes = 0
@@ -226,6 +283,7 @@ def _make_batches(
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def plan_batches(
     source_dir: Path,
@@ -262,12 +320,14 @@ def plan_batches(
         kinds: dict[str, int] = {}
         for f in batch:
             kinds[f["kind"]] = kinds.get(f["kind"], 0) + 1
-        batches_out.append({
-            "id": i,
-            "files": [f["path"] for f in batch],
-            "total_bytes": sum(f["size_bytes"] for f in batch),
-            "kinds": kinds,
-        })
+        batches_out.append(
+            {
+                "id": i,
+                "files": [f["path"] for f in batch],
+                "total_bytes": sum(f["size_bytes"] for f in batch),
+                "kinds": kinds,
+            }
+        )
 
     merge_hint = (
         "Dispatch each batch as a parallel subagent with /beeweave-ingest on its file list. "

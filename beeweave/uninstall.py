@@ -153,18 +153,14 @@ def uninstall_project(ctx: UninstallContext, project_dir: Path, agents: list[str
     selected = set(agents)
     removed_bootstrap = 0
     if boot_root is not None:
-        for rel, dest, agent in ctx.bootstrap_files:
-            if agent is not None and agent not in selected:
+        for rel, dest, bootstrap_agent in ctx.bootstrap_files:
+            if bootstrap_agent is not None and bootstrap_agent not in selected:
                 continue
             src = ctx.resolve_bootstrap_src(boot_root, rel)
             if src is not None and _remove_file_if_managed(project_dir / dest, src):
                 removed_bootstrap += 1
 
-    aliases = sorted({
-        alias
-        for agent in agents
-        for alias in ctx.agent_aliases.get(agent, ())
-    })
+    aliases = sorted({alias for agent in agents for alias in ctx.agent_aliases.get(agent, ())})
     for alias in aliases:
         alias_path = project_dir / alias
         if alias_path.is_symlink():
@@ -185,8 +181,7 @@ def uninstall_project(ctx: UninstallContext, project_dir: Path, agents: list[str
 
     env = project_dir / ".env"
     default_envs = {
-        'BEEWEAVE_VAULT_PATH="./vault"\n'
-        'BEEWEAVE_WORKBENCH_PATH="./workbench"\n',
+        'BEEWEAVE_VAULT_PATH="./vault"\nBEEWEAVE_WORKBENCH_PATH="./workbench"\n',
     }
     if env.is_file() and env.read_text(encoding="utf-8") in default_envs:
         env.unlink()

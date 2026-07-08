@@ -1,21 +1,19 @@
 """Tests for the content-hash cache module."""
+
 import json
 import subprocess
 import sys
-import time
-from pathlib import Path
 
 import pytest
-
 from beeweave.cache import (
+    _load_manifest,
+    _manifest_path,
     check_sources,
     compute_hash,
     hash_file,
-    sha256_file,
     sha256_dir,
+    sha256_file,
     update_source,
-    _load_manifest,
-    _manifest_path,
 )
 
 
@@ -45,6 +43,7 @@ def src_dir(tmp_path):
 # ---------------------------------------------------------------------------
 # Hash functions
 # ---------------------------------------------------------------------------
+
 
 class TestHashing:
     def test_sha256_file_deterministic(self, src_file):
@@ -77,6 +76,7 @@ class TestHashing:
 # check_sources
 # ---------------------------------------------------------------------------
 
+
 class TestCheckSources:
     def test_new_source(self, vault, src_file):
         result = check_sources(vault, [src_file])
@@ -93,13 +93,17 @@ class TestCheckSources:
 
     def test_unchanged_with_prefixed_manifest_hash(self, vault, src_file):
         h = sha256_file(src_file)
-        (vault / ".manifest.json").write_text(json.dumps({
-            "sources": {
-                str(src_file): {
-                    "content_hash": f"sha256:{h}",
+        (vault / ".manifest.json").write_text(
+            json.dumps(
+                {
+                    "sources": {
+                        str(src_file): {
+                            "content_hash": f"sha256:{h}",
+                        }
+                    }
                 }
-            }
-        }))
+            )
+        )
         result = check_sources(vault, [src_file])
         assert str(src_file) in result["unchanged"]
 
@@ -135,6 +139,7 @@ class TestCheckSources:
 # ---------------------------------------------------------------------------
 # update_source / manifest
 # ---------------------------------------------------------------------------
+
 
 class TestUpdateSource:
     def test_writes_manifest(self, vault, src_file):
@@ -176,11 +181,13 @@ class TestUpdateSource:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 class TestCacheCLI:
     def _run(self, *args):
         return subprocess.run(
             [sys.executable, "-m", "beeweave.cli", *args],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
 
     def test_cache_hash_file(self, src_file):
@@ -211,8 +218,7 @@ class TestCacheCLI:
         assert str(src_file) in data["unchanged"]
 
     def test_cache_update_with_pages(self, vault, src_file):
-        proc = self._run("cache-update", str(vault), str(src_file),
-                         "--pages", "concepts/foo.md", "entities/bar.md")
+        proc = self._run("cache-update", str(vault), str(src_file), "--pages", "concepts/foo.md", "entities/bar.md")
         assert proc.returncode == 0
         sources = _load_manifest(vault)
         assert sources[str(src_file)]["pages_produced"] == ["concepts/foo.md", "entities/bar.md"]

@@ -25,13 +25,11 @@ Output JSON:
 
 from __future__ import annotations
 
-import json
 import math
 import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
-
 
 # ---------------------------------------------------------------------------
 # Wikilink / frontmatter parsing
@@ -113,9 +111,8 @@ def parse_vault_graph(vault: Path) -> tuple[dict[str, list[str]], dict[str, list
 # Graph metrics
 # ---------------------------------------------------------------------------
 
-def _build_degree_tables(
-    outgoing: dict[str, list[str]]
-) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
+
+def _build_degree_tables(outgoing: dict[str, list[str]]) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
     out_deg: dict[str, int] = {n: len(v) for n, v in outgoing.items()}
     in_deg: dict[str, int] = defaultdict(int)
     for targets in outgoing.values():
@@ -131,9 +128,7 @@ def god_nodes(outgoing: dict[str, list[str]], top_n: int = 20) -> list[dict]:
     degree, in_deg, out_deg = _build_degree_tables(outgoing)
     ranked = sorted(degree, key=lambda n: -degree[n])[:top_n]
     return [
-        {"page": n, "degree": degree[n],
-         "in_degree": in_deg.get(n, 0), "out_degree": out_deg.get(n, 0)}
-        for n in ranked
+        {"page": n, "degree": degree[n], "in_degree": in_deg.get(n, 0), "out_degree": out_deg.get(n, 0)} for n in ranked
     ]
 
 
@@ -152,13 +147,14 @@ def isolated(outgoing: dict[str, list[str]]) -> list[str]:
 # Community detection — greedy modularity (Newman-Girvan, pure Python)
 # ---------------------------------------------------------------------------
 
+
 def _modularity(communities: list[set[str]], outgoing: dict[str, list[str]]) -> float:
     """Approximate modularity Q for an undirected projection of outgoing edges."""
     all_edges = [(s, t) for s, targets in outgoing.items() for t in targets]
     m = len(all_edges)
     if m == 0:
         return 0.0
-    degree = defaultdict(int)
+    degree: dict[str, int] = defaultdict(int)
     for s, t in all_edges:
         degree[s] += 1
         degree[t] += 1
@@ -225,18 +221,10 @@ def detect_communities(outgoing: dict[str, list[str]]) -> list[set[str]]:
 
         nodes = list(outgoing.keys())
         node_idx = {n: i for i, n in enumerate(nodes)}
-        edges = [
-            (node_idx[s], node_idx[t])
-            for s, targets in outgoing.items()
-            for t in targets
-            if t in node_idx
-        ]
+        edges = [(node_idx[s], node_idx[t]) for s, targets in outgoing.items() for t in targets if t in node_idx]
         g = ig.Graph(n=len(nodes), edges=edges, directed=False)
         partition = leidenalg.find_partition(g, leidenalg.ModularityVertexPartition)
-        return [
-            {nodes[i] for i in cluster}
-            for cluster in partition
-        ]
+        return [{nodes[i] for i in cluster} for cluster in partition]
     except ImportError:
         return detect_communities_greedy(outgoing)
 
@@ -244,6 +232,7 @@ def detect_communities(outgoing: dict[str, list[str]]) -> list[set[str]]:
 # ---------------------------------------------------------------------------
 # Surprising connections
 # ---------------------------------------------------------------------------
+
 
 def surprising_connections(
     outgoing: dict[str, list[str]],
@@ -268,27 +257,28 @@ def surprising_connections(
                 cross_deg[src] += 1
                 cross_deg[t] += 1
 
-    results = []
+    ranked_edges: list[tuple[float, str, str]] = []
     seen: set[tuple[str, str]] = set()
     for src, targets in outgoing.items():
         for t in targets:
-            pair = tuple(sorted((src, t)))
+            pair = (src, t) if src <= t else (t, src)
             if pair in seen:
                 continue
             if node_comm.get(src) != node_comm.get(t):
                 cd_s = cross_deg.get(src, 1)
                 cd_t = cross_deg.get(t, 1)
                 score = 1.0 / math.sqrt(cd_s * cd_t)
-                results.append({"source": src, "target": t, "score": round(score, 4)})
+                ranked_edges.append((round(score, 4), src, t))
                 seen.add(pair)
 
-    results.sort(key=lambda x: -x["score"])
-    return results[:top_n]
+    ranked_edges.sort(reverse=True)
+    return [{"source": src, "target": target, "score": score} for score, src, target in ranked_edges[:top_n]]
 
 
 # ---------------------------------------------------------------------------
 # Community labelling (heuristic: most common tag or longest shared prefix)
 # ---------------------------------------------------------------------------
+
 
 def _label_community(pages: list[str], tags_map: dict[str, list[str]]) -> str:
     freq: dict[str, int] = defaultdict(int)
@@ -314,13 +304,17 @@ def _label_community(pages: list[str], tags_map: dict[str, list[str]]) -> str:
 # Main entry point
 # ---------------------------------------------------------------------------
 
+
 def analyse_vault(vault: Path, top_n: int = 20) -> dict[str, Any]:
     outgoing, tags_map = parse_vault_graph(vault)
 
     if not outgoing:
         return {
-            "god_nodes": [], "communities": [],
-            "surprising_connections": [], "dead_ends": [], "isolated": [],
+            "god_nodes": [],
+            "communities": [],
+            "surprising_connections": [],
+            "dead_ends": [],
+            "isolated": [],
             "stats": {"pages": 0, "edges": 0, "communities": 0},
         }
 

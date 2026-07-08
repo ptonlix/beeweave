@@ -117,10 +117,7 @@ def check_version(current: str, latest: str | None = None) -> VersionCheck:
 
 
 def _has_source_checkout_marker(path: Path) -> bool:
-    for parent in [path, *path.parents]:
-        if (parent / ".git").exists() and (parent / "pyproject.toml").is_file():
-            return True
-    return False
+    return any((parent / ".git").exists() and (parent / "pyproject.toml").is_file() for parent in [path, *path.parents])
 
 
 def detect_install_method(
@@ -178,7 +175,9 @@ def _source_root(path: Path) -> Path | None:
     return None
 
 
-def run_upgrade_command(command: list[str], *, runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run) -> UpgradeResult:
+def run_upgrade_command(
+    command: list[str], *, runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run
+) -> UpgradeResult:
     proc = runner(command, text=True, capture_output=True)
     return UpgradeResult(
         command=command,
@@ -274,7 +273,9 @@ def replay_plan(config_dir: Path) -> ReplayPlan:
             skipped.append((str(name), f"missing project directory: {project_dir}"))
             continue
         config_raw = raw.get("config_path")
-        config_path = Path(config_raw).expanduser() if isinstance(config_raw, str) and config_raw else config_dir / "config"
+        config_path = (
+            Path(config_raw).expanduser() if isinstance(config_raw, str) and config_raw else config_dir / "config"
+        )
         entries.append(
             ReplayEntry(
                 profile=str(name),

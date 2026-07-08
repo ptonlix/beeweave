@@ -16,11 +16,43 @@ docs/           # MkDocs source documentation
 
 ## Checks
 
+Use the Makefile for the standard local quality gate:
+
 ```bash
-uv run pytest
+make format
+make check
+```
+
+The targets expand to Ruff formatting/linting, mypy type checking, and pytest:
+
+```bash
+uv run ruff format beeweave tests
+uv run ruff check beeweave tests --fix
+uv run ruff format --check beeweave tests
+uv run ruff check beeweave tests
+uv run mypy
+uv run python -m pytest
+```
+
+For quick CLI smoke checks, also run:
+
+```bash
 uv run bwe setup --help
 uv run bwe info
 ```
+
+## Local CLI Install
+
+Install the current source checkout as the active development `bwe` tool:
+
+```bash
+make dev-install
+```
+
+This runs `uv tool install --reinstall --editable <repo-root>` with the
+repository root resolved from the Makefile location. Run `bwe setup` afterwards
+only when you need to refresh installed agent skills from the newly installed
+package.
 
 ## Documentation
 

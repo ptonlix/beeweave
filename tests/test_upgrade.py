@@ -1,8 +1,6 @@
 from pathlib import Path
-from types import SimpleNamespace
 
-from beeweave import cli
-from beeweave import upgrade
+from beeweave import cli, upgrade
 
 
 def _method_path(tmp_path: Path, *parts: str) -> str:
@@ -53,7 +51,9 @@ def test_detect_install_method_source_checkout(tmp_path):
 def test_detect_install_method_pip(tmp_path):
     package_file = _method_path(tmp_path, "venv", "lib", "python3.10", "site-packages", "beeweave", "cli.py")
 
-    method = upgrade.detect_install_method(package_file=package_file, executable=str(tmp_path / "venv" / "bin" / "python"))
+    method = upgrade.detect_install_method(
+        package_file=package_file, executable=str(tmp_path / "venv" / "bin" / "python")
+    )
 
     assert method.kind == "pip"
     assert upgrade.upgrade_command(method) == [
@@ -172,7 +172,9 @@ def test_replay_plan_skips_missing_project_directories(tmp_path):
 
 
 def test_cmd_upgrade_check_reports_update_available(monkeypatch, capsys):
-    monkeypatch.setattr(cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available"))
+    monkeypatch.setattr(
+        cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available")
+    )
 
     assert cli.main(["upgrade", "--check"]) == 0
 
@@ -183,7 +185,9 @@ def test_cmd_upgrade_check_reports_update_available(monkeypatch, capsys):
 
 def test_cmd_upgrade_runs_supported_installer_and_replays_profiles(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path)
-    monkeypatch.setattr(cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available"))
+    monkeypatch.setattr(
+        cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available")
+    )
     monkeypatch.setattr(
         cli.upgrade,
         "detect_install_method",
@@ -232,7 +236,9 @@ def test_cmd_upgrade_runs_supported_installer_and_replays_profiles(tmp_path, mon
 
 def test_cmd_upgrade_skips_replay_when_bundled_skills_unreadable(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path)
-    monkeypatch.setattr(cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available"))
+    monkeypatch.setattr(
+        cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available")
+    )
     monkeypatch.setattr(
         cli.upgrade,
         "detect_install_method",
@@ -254,13 +260,17 @@ def test_cmd_upgrade_skips_replay_when_bundled_skills_unreadable(tmp_path, monke
 
 
 def test_cmd_upgrade_unsupported_installer_does_not_run_command(monkeypatch, capsys):
-    monkeypatch.setattr(cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available"))
+    monkeypatch.setattr(
+        cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available")
+    )
     monkeypatch.setattr(
         cli.upgrade,
         "detect_install_method",
         lambda **kwargs: upgrade.InstallMethod("source", "/bin/python", "/repo/beeweave/cli.py", "source"),
     )
-    monkeypatch.setattr(cli.upgrade, "run_upgrade_command", lambda command: (_ for _ in ()).throw(AssertionError("should not run")))
+    monkeypatch.setattr(
+        cli.upgrade, "run_upgrade_command", lambda command: (_ for _ in ()).throw(AssertionError("should not run"))
+    )
 
     assert cli.main(["upgrade"]) == 1
 
@@ -270,7 +280,9 @@ def test_cmd_upgrade_unsupported_installer_does_not_run_command(monkeypatch, cap
 
 
 def test_cmd_upgrade_installer_failure_stops_before_replay(monkeypatch):
-    monkeypatch.setattr(cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available"))
+    monkeypatch.setattr(
+        cli.upgrade, "check_version", lambda current: upgrade.VersionCheck(current, "9.9.9", "update_available")
+    )
     monkeypatch.setattr(
         cli.upgrade,
         "detect_install_method",

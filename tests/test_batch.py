@@ -1,11 +1,11 @@
 """Tests for the batch planning module."""
+
 import json
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
-
 from beeweave.batch import (
     _classify,
     _make_batches,
@@ -13,10 +13,10 @@ from beeweave.batch import (
     plan_batches,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def vault(tmp_path):
@@ -45,6 +45,7 @@ def _write(path: Path, content: str = "x", size: int | None = None) -> Path:
 # _classify
 # ---------------------------------------------------------------------------
 
+
 class TestClassify:
     def test_markdown(self, tmp_path):
         assert _classify(tmp_path / "foo.md") == "text"
@@ -68,6 +69,7 @@ class TestClassify:
 # ---------------------------------------------------------------------------
 # discover_sources
 # ---------------------------------------------------------------------------
+
 
 class TestDiscoverSources:
     def test_finds_markdown(self, source_dir, vault):
@@ -114,7 +116,7 @@ class TestDiscoverSources:
         assert not any("_meta" in parts for parts in rel_paths)
 
     def test_returns_size(self, source_dir, vault):
-        p = _write(source_dir / "doc.md", size=512)
+        _write(source_dir / "doc.md", size=512)
         files = discover_sources(source_dir, vault=vault)
         assert files[0]["size_bytes"] == 512
 
@@ -123,10 +125,10 @@ class TestDiscoverSources:
 # _make_batches
 # ---------------------------------------------------------------------------
 
+
 class TestMakeBatches:
     def _files(self, sizes: list[int]) -> list[dict]:
-        return [{"path": f"f{i}.md", "kind": "text", "size_bytes": s}
-                for i, s in enumerate(sizes)]
+        return [{"path": f"f{i}.md", "kind": "text", "size_bytes": s} for i, s in enumerate(sizes)]
 
     def test_single_batch_small(self):
         files = self._files([100, 200, 300])
@@ -158,6 +160,7 @@ class TestMakeBatches:
 # plan_batches
 # ---------------------------------------------------------------------------
 
+
 class TestPlanBatches:
     def test_returns_required_keys(self, source_dir, vault):
         _write(source_dir / "a.md")
@@ -187,6 +190,7 @@ class TestPlanBatches:
         f = _write(source_dir / "doc.md", "some content")
         # Mark it as ingested
         from beeweave.cache import update_source
+
         update_source(vault, f)
         result = plan_batches(source_dir, vault)
         assert result["stats"]["skipped_unchanged"] == 1
@@ -197,6 +201,7 @@ class TestPlanBatches:
         _write(source_dir / "article" / "assets" / "fig1.jpg", size=128)
         _write(source_dir / "article" / "assets" / "fig2.png", size=128)
         from beeweave.cache import update_source
+
         update_source(vault, index)
 
         result = plan_batches(source_dir, vault)
@@ -207,6 +212,7 @@ class TestPlanBatches:
     def test_no_cache_flag_includes_unchanged(self, source_dir, vault):
         f = _write(source_dir / "doc.md", "some content")
         from beeweave.cache import update_source
+
         update_source(vault, f)
         result = plan_batches(source_dir, vault, skip_unchanged=False)
         assert result["stats"]["to_ingest"] == 1
@@ -228,11 +234,13 @@ class TestPlanBatches:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 class TestBatchPlanCLI:
     def _run(self, *args):
         return subprocess.run(
             [sys.executable, "-m", "beeweave.cli", *args],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
 
     def test_outputs_json(self, source_dir, vault):

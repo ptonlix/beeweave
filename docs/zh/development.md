@@ -16,11 +16,42 @@ docs/           # MkDocs 源文档
 
 ## 检查命令
 
+标准本地质量检查使用 Makefile：
+
 ```bash
-uv run pytest
+make format
+make check
+```
+
+这些目标会依次运行 Ruff 格式化 / lint、mypy 类型检查和 pytest：
+
+```bash
+uv run ruff format beeweave tests
+uv run ruff check beeweave tests --fix
+uv run ruff format --check beeweave tests
+uv run ruff check beeweave tests
+uv run mypy
+uv run python -m pytest
+```
+
+快速检查 CLI 时，也运行：
+
+```bash
 uv run bwe setup --help
 uv run bwe info
 ```
+
+## 本地 CLI 安装
+
+把当前源码 checkout 安装为开发中的 `bwe` 工具：
+
+```bash
+make dev-install
+```
+
+该命令会基于 Makefile 所在位置自动解析仓库根目录，并执行
+`uv tool install --reinstall --editable <repo-root>`。只有需要把新安装包里的
+agent skills 刷新到目标工作区时，才在之后手动运行 `bwe setup`。
 
 ## 文档
 

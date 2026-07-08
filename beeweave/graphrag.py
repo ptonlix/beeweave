@@ -26,10 +26,9 @@ to open, replacing the current approach of opening 10+ pages speculatively.
 from __future__ import annotations
 
 import re
-from collections import defaultdict, deque
+from collections import deque
 from pathlib import Path
 from typing import Any
-
 
 # ---------------------------------------------------------------------------
 # Index building
@@ -45,9 +44,7 @@ _TIER_RE = re.compile(r"^tier:\s*(\w+)", re.MULTILINE)
 _WIKILINK_RE = re.compile(r"\[\[([^\]|#]+?)(?:[|#][^\]]*?)?\]\]")
 _MD_LINK_RE = re.compile(r"\[.*?\]\(([^)]+\.md[^)]*)\)")
 
-SKIP_DIRS = frozenset(
-    "_meta _raw _archived _staging _archives .obsidian".split()
-)
+SKIP_DIRS = frozenset(["_meta", "_raw", "_archived", "_staging", "_archives", ".obsidian"])
 
 
 def _slug(s: str) -> str:
@@ -62,10 +59,7 @@ def build_index(vault: Path) -> dict[str, dict]:
     """
     pages: dict[str, dict] = {}
 
-    md_files = [
-        p for p in vault.rglob("*.md")
-        if not any(part in SKIP_DIRS for part in p.relative_to(vault).parts)
-    ]
+    md_files = [p for p in vault.rglob("*.md") if not any(part in SKIP_DIRS for part in p.relative_to(vault).parts)]
 
     # First pass: collect all slugs and frontmatter
     for page in md_files:
@@ -158,7 +152,7 @@ def _score(slug: str, entry: dict, terms: list[str]) -> float:
     tags_lower = [t.lower() for t in entry["tags"]]
     for term in terms:
         t = term.lower()
-        if t == slug or t == title_lower:
+        if t in (slug, title_lower):
             score += 10.0
         elif t in title_lower:
             score += 6.0
@@ -200,6 +194,7 @@ def rank_candidates(
 # ---------------------------------------------------------------------------
 # Multi-hop path finding (BFS)
 # ---------------------------------------------------------------------------
+
 
 def find_path(
     index: dict[str, dict],
@@ -266,11 +261,19 @@ def classify_query(question: str) -> tuple[str, list[str]]:
 
     if _GAP_PATTERNS.search(question):
         # Extract what the gap is about
-        terms = re.sub(r"what (?:do|don't) I (?:not )?know about|what.?s missing", "", question, flags=re.IGNORECASE).strip().split()
+        terms = (
+            re.sub(r"what (?:do|don't) I (?:not )?know about|what.?s missing", "", question, flags=re.IGNORECASE)
+            .strip()
+            .split()
+        )
         return "gap", terms
 
     if _LIST_PATTERNS.search(question):
-        terms = re.sub(r"(?:list|show|find|give me) (?:all|every|pages about)", "", question, flags=re.IGNORECASE).strip().split()
+        terms = (
+            re.sub(r"(?:list|show|find|give me) (?:all|every|pages about)", "", question, flags=re.IGNORECASE)
+            .strip()
+            .split()
+        )
         return "list", terms
 
     # Default: extract meaningful terms (drop stop words)
@@ -282,6 +285,7 @@ def classify_query(question: str) -> tuple[str, list[str]]:
 # ---------------------------------------------------------------------------
 # Main query entry point
 # ---------------------------------------------------------------------------
+
 
 def query(
     vault: Path,
@@ -309,7 +313,8 @@ def query(
     god_slugs = sorted(degree, key=lambda s: -degree[s])[:10]
     term_set = {t.lower() for t in terms}
     god_relevant = [
-        index[s]["path"] for s in god_slugs
+        index[s]["path"]
+        for s in god_slugs
         if any(t in index[s]["title"].lower() or t in " ".join(index[s]["tags"]).lower() for t in term_set)
     ][:5]
 
@@ -342,7 +347,7 @@ def query(
         for p in path_result:
             if p not in should_read:
                 should_read.append(p)
-        should_read = should_read[:max_should_read + 2]
+        should_read = should_read[: max_should_read + 2]
 
     return {
         "answer_type": answer_type,
