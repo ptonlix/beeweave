@@ -36,6 +36,7 @@ bwe setup --agents claude,codex
 bwe setup --global-extra beeweave-capture
 bwe setup --profile work
 bwe profile set-default work
+bwe uninstall --all
 bwe info
 ```
 
@@ -52,3 +53,7 @@ Use `bwe profile set-default NAME` to intentionally copy
 `~/.beeweave/config.NAME` to `~/.beeweave/config`. If a default config already
 exists, BeeWeave creates a timestamped backup and requires `YES` before
 overwriting it.
+
+Use `bwe uninstall --all` to also clean project-local BeeWeave files from
+workspaces referenced by all BeeWeave profile configs. Vault and workbench
+content is preserved.

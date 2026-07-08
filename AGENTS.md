@@ -30,9 +30,34 @@ pyproject.toml  # Packaging and CLI entrypoint
 
 - Keep implementation changes scoped to the active request or OpenSpec change.
 - Prefer existing CLI/setup/skill patterns over new abstractions.
-- For terminal interaction in the BeeWeave CLI, use InquirerPy consistently for
-  prompts, selections, checkboxes, confirmations, and text input. Keep
-  non-interactive and missing-InquirerPy fallbacks deterministic and prompt-free.
+- For terminal interaction in the BeeWeave CLI, route shared presentation
+  through `beeweave/ui.py` instead of adding ad hoc ANSI, prompt, banner, or
+  summary rendering in command handlers.
+- Use the shared UI helpers consistently:
+  - `ui.print_setup_banner` for the setup banner.
+  - `ui.select_prompt` for interactive profile-style selections.
+  - `ui.checkbox_prompt` for multi-select flows such as agent and optional
+    global skill selection.
+  - `ui.text_prompt` for validated text input, including new profile names and
+    high-risk confirmation text.
+  - `ui.confirm_prompt` for yes/no confirmations.
+  - `ui.print_summary_panel` for human-facing completion or status summaries.
+- Keep InquirerPy optional. Non-interactive and missing-InquirerPy fallbacks
+  must remain deterministic, scriptable, and prompt-free unless the command is
+  explicitly unsafe without interactive confirmation.
+- Respect `NO_COLOR` and non-TTY output. Shared UI helpers must disable ANSI in
+  those cases while keeping output readable.
+- Current CLI UI conventions:
+  - `bwe setup` uses the shared banner, profile select, new-profile text input,
+    agent/global-skill checkboxes, and setup summary panel.
+  - `bwe info` uses the shared summary panel.
+  - `bwe uninstall` uses shared confirmation and completion summary panel.
+  - `bwe profile set-default` uses shared high-risk text confirmation and
+    completion summary panel.
+- Do not add banners or panels to machine-readable commands such as
+  `graph-query`, `graph-analyse`, `batch-plan`, `cache-check`, `cache-update`,
+  `cache-hash`, `ast-extract`, or `list`; preserve their JSON/plain-text output
+  for scripts and pipes.
 - Use `apply_patch` for manual file edits.
 - Do not recreate runtime `vault/` or `workbench/` directories in the repo root.
 - Preserve user work and unrelated dirty files.

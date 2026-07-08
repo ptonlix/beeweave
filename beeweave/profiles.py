@@ -7,6 +7,8 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
+from beeweave import ui
+
 NEW_PROFILE_CHOICE = "__new_profile__"
 
 
@@ -48,9 +50,13 @@ def available_profiles(config_dir: Path) -> list[str]:
 
 def profile_label(profile: str, *, config_dir: Path, default_config: Path) -> str:
     if profile == "default":
-        return f"default - {default_config}"
+        return f"default   active config     {default_config}"
     path = config_path_for_profile(profile, config_dir=config_dir, default_config=default_config)
-    return f"{profile} - {path}"
+    return f"{profile:<9} named profile     {path}"
+
+
+def new_profile_label(*, config_dir: Path) -> str:
+    return f"+ new     create profile    {config_dir / 'config.<name>'}"
 
 
 def parse_profile_menu_selection(raw: str, profiles: list[str]) -> str:
@@ -79,7 +85,7 @@ def choose_profile_numbered(*, config_dir: Path, default_config: Path) -> str:
         marker = " (default)" if profile == "default" else ""
         label = profile_label(profile, config_dir=config_dir, default_config=default_config)
         print(f"   {idx:2d}. {label}{marker}")
-    print(f"   {len(profiles) + 1:2d}. new profile...")
+    print(f"   {len(profiles) + 1:2d}. {new_profile_label(config_dir=config_dir)}")
     print("")
     while True:
         entered = input("  Select profile [1]: ").strip()
@@ -98,36 +104,38 @@ def choose_profile_numbered(*, config_dir: Path, default_config: Path) -> str:
 
 
 def choose_profile_select(*, config_dir: Path, default_config: Path) -> str:
-    from InquirerPy import inquirer
-    from InquirerPy.base.control import Choice
-
     profiles = available_profiles(config_dir)
     choices = [
-        Choice(
+        ui.PromptChoice(
             profile,
             name=profile_label(profile, config_dir=config_dir, default_config=default_config),
         )
         for profile in profiles
     ]
-    choices.append(Choice(NEW_PROFILE_CHOICE, name="new profile..."))
-    selected = str(
-        inquirer.select(
-            message="BeeWeave profile:",
-            choices=choices,
-            default="default",
-            instruction="(↑↓ move, enter confirm; default selected)",
-            cycle=False,
-            height=min(8, len(choices)),
-        ).execute()
+    choices.append(ui.PromptChoice(NEW_PROFILE_CHOICE, name=new_profile_label(config_dir=config_dir)))
+    selected = ui.select_prompt(
+        message="BeeWeave profile:",
+        choices=choices,
+        default="default",
+        instruction="(↑↓ move, enter confirm; default selected)",
+        height=min(8, len(choices)),
     )
     if selected != NEW_PROFILE_CHOICE:
         return selected
-    while True:
-        name = str(inquirer.text(message="New profile name:").execute()).strip()
+
+    def validate_name(value: str) -> bool | str:
         try:
-            return parse_profile(name)
+            parse_profile(value)
         except ValueError as exc:
-            print(f"  {exc}")
+            return False
+        return True
+
+    name = ui.text_prompt(
+        message="New profile name:",
+        validate=validate_name,
+        invalid_message="profile name may only contain letters, numbers, '-' and '_'",
+    ).strip()
+    return parse_profile(name)
 
 
 def choose_profile(raw_profile: str | None, *, config_dir: Path, default_config: Path) -> str:

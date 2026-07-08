@@ -19,19 +19,12 @@ from pathlib import Path
 
 from beeweave import __version__
 from beeweave import profiles
+from beeweave import ui
+from beeweave import uninstall
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
 GLOBAL_CONFIG = GLOBAL_CONFIG_DIR / "config"
-
-ANSI = {
-    "reset": "\033[0m",
-    "dim": "\033[2m",
-    "bold": "\033[1m",
-    "cyan": "\033[36m",
-    "green": "\033[32m",
-    "magenta": "\033[35m",
-}
 
 # Skills usable from any project through the global BeeWeave config. Keep the
 # default set focused on the core cross-project workflows. Extra global skills
@@ -198,49 +191,6 @@ def install_skills(
     if not quiet:
         print(f"✅  Installed {installed} skills → {label}")
     return installed
-
-
-def _remove_empty_parents(path: Path, stop: Path) -> None:
-    """Remove empty generated parent directories without crossing *stop*."""
-    current = path
-    stop = stop.resolve()
-    while True:
-        try:
-            current_resolved = current.resolve()
-        except FileNotFoundError:
-            current_resolved = current.parent.resolve() / current.name
-        if current_resolved == stop or stop not in current_resolved.parents:
-            return
-        try:
-            current.rmdir()
-        except OSError:
-            return
-        current = current.parent
-
-
-def uninstall_skills(
-    target_dir: Path,
-    label: str,
-    *,
-    subset: tuple[str, ...] | None = None,
-) -> int:
-    """Remove BeeWeave bundled skills from *target_dir*. Returns removed count."""
-    if not target_dir.is_dir():
-        return 0
-    managed = set(subset or tuple(list_skills()))
-    removed = 0
-    for name in sorted(managed):
-        path = target_dir / name
-        if path.is_symlink() or path.is_file():
-            path.unlink()
-            removed += 1
-        elif path.is_dir() and (path / "SKILL.md").exists():
-            shutil.rmtree(path)
-            removed += 1
-    if removed:
-        print(f"✅  Removed {removed} skills → {label}")
-    _remove_empty_parents(target_dir, HOME)
-    return removed
 
 
 AGENTS: dict[str, dict[str, str | None]] = {
@@ -413,30 +363,25 @@ def _choose_global_extra_numbered() -> list[str]:
 
 
 def _choose_global_extra_checkbox() -> list[str]:
-    from InquirerPy import inquirer
-    from InquirerPy.base.control import Choice
-
     print("  Global skills always installed:")
     for skill in CORE_PORTABLE_SKILLS:
         print(f"    [x] {skill}")
     _print_project_local_skill_summary()
     print()
     choices = [
-        Choice(
+        ui.PromptChoice(
             skill,
             name=f"{skill} - {GLOBAL_EXTRA_DESCRIPTIONS[skill]}",
             enabled=False,
         )
         for skill in RECOMMENDED_GLOBAL_EXTRA_SKILLS
     ]
-    selected = inquirer.checkbox(
+    selected = ui.checkbox_prompt(
         message="Optional advanced global skills:",
         choices=choices,
         instruction="(↑↓ move, space select, enter confirm; default none)",
-        transformer=lambda result: f"{len(result)} selected",
-        cycle=False,
         height=min(8, len(choices)),
-    ).execute()
+    )
     return _parse_global_extra(",".join(selected))
 
 
@@ -515,25 +460,20 @@ def _choose_agents_numbered() -> list[str]:
 
 
 def _choose_agents_checkbox() -> list[str]:
-    from InquirerPy import inquirer
-    from InquirerPy.base.control import Choice
-
     choices = [
-        Choice(
+        ui.PromptChoice(
             agent,
             name=f"{agent} - {meta['label']}",
             enabled=agent in DEFAULT_AGENTS,
         )
         for agent, meta in AGENTS.items()
     ]
-    selected = inquirer.checkbox(
+    selected = ui.checkbox_prompt(
         message="Select agents:",
         choices=choices,
         instruction="(↑↓ move, space select, enter confirm)",
-        transformer=lambda result: f"{len(result)} selected",
-        cycle=False,
         height=min(12, len(choices)),
-    ).execute()
+    )
     return list(selected)
 
 
@@ -606,28 +546,6 @@ def _hermes_global_skill_dirs() -> list[Path]:
     if profiles.is_dir():
         dirs.extend(prof / "skills" for prof in sorted(p for p in profiles.iterdir() if p.is_dir()))
     return dirs
-
-
-def global_skill_dirs_for_agents(agents: list[str]) -> list[tuple[Path, str]]:
-    seen: set[Path] = set()
-    result: list[tuple[Path, str]] = []
-    for agent in agents:
-        global_rel = AGENTS[agent]["global"]
-        if global_rel is None:
-            continue
-        if agent == "hermes":
-            for path in _hermes_global_skill_dirs():
-                resolved = path.expanduser()
-                if resolved not in seen:
-                    seen.add(resolved)
-                    result.append((resolved, f"{path} (Hermes, portable)"))
-            continue
-        path = HOME / str(global_rel)
-        if path in seen:
-            continue
-        seen.add(path)
-        result.append((path, f"~/{global_rel}/ ({_agent_label(agent)}, portable)"))
-    return result
 
 
 # ── Project-local install (opt-in) ───────────────────────────────────────────
@@ -785,93 +703,6 @@ def install_project(project_dir: Path, mode: str, agents: list[str]) -> None:
         print(f"✅  Linked AGENTS.md aliases ({', '.join(aliases)})")
 
 
-def _same_file_content(left: Path, right: Path) -> bool:
-    try:
-        return left.read_bytes() == right.read_bytes()
-    except OSError:
-        return False
-
-
-def _remove_file_if_managed(path: Path, source: Path | None = None) -> bool:
-    if not path.exists() and not path.is_symlink():
-        return False
-    if path.is_symlink():
-        path.unlink()
-        return True
-    if path.is_dir():
-        return False
-    if source is not None and not _same_file_content(path, source):
-        print(f"   ⚠️  {path} was modified, leaving it in place")
-        return False
-    path.unlink()
-    return True
-
-
-def uninstall_project(project_dir: Path, agents: list[str]) -> int:
-    removed = 0
-    if not project_dir.exists():
-        return 0
-    print(f"\n📁  Removing project-local BeeWeave files → {project_dir}")
-
-    installed_project_dirs: set[str] = set()
-    for agent in agents:
-        project_rel = AGENTS[agent]["project"]
-        if project_rel is None or project_rel in installed_project_dirs:
-            continue
-        installed_project_dirs.add(str(project_rel))
-        removed += uninstall_skills(
-            project_dir / str(project_rel),
-            f"{project_rel}/ ({_agent_label(agent)}, full)",
-        )
-
-    boot_root = bootstrap_dir()
-    selected = set(agents)
-    removed_bootstrap = 0
-    if boot_root is not None:
-        for rel, dest, agent in BOOTSTRAP_FILES:
-            if agent is not None and agent not in selected:
-                continue
-            src = _resolve_bootstrap_src(boot_root, rel)
-            if src is not None and _remove_file_if_managed(project_dir / dest, src):
-                removed_bootstrap += 1
-
-    aliases = sorted({
-        alias
-        for agent in agents
-        for alias in AGENTS_ALIASES.get(agent, ())
-    })
-    for alias in aliases:
-        alias_path = project_dir / alias
-        if alias_path.is_symlink():
-            try:
-                if alias_path.readlink() != Path("AGENTS.md"):
-                    continue
-            except OSError:
-                pass
-            alias_path.unlink()
-            removed_bootstrap += 1
-        elif alias_path.is_file():
-            agents_path = project_dir / "AGENTS.md"
-            agents_source = _resolve_bootstrap_src(boot_root, "AGENTS.md") if boot_root is not None else None
-            compare_to = agents_path if agents_path.is_file() else agents_source
-            if compare_to is not None and alias_path.read_bytes() == compare_to.read_bytes():
-                alias_path.unlink()
-                removed_bootstrap += 1
-
-    env = project_dir / ".env"
-    default_envs = {
-        'BEEWEAVE_VAULT_PATH="./vault"\n'
-        'BEEWEAVE_WORKBENCH_PATH="./workbench"\n',
-    }
-    if env.is_file() and env.read_text(encoding="utf-8") in default_envs:
-        env.unlink()
-        removed_bootstrap += 1
-
-    if removed_bootstrap:
-        print(f"✅  Removed {removed_bootstrap} project bootstrap/config file(s)")
-    return removed + removed_bootstrap
-
-
 # ── Config ───────────────────────────────────────────────────────────────────
 def _read_config_value_from(path: Path, key: str) -> str:
     if not path.is_file():
@@ -960,44 +791,9 @@ def _check_stale() -> None:
 
 
 # ── Commands ─────────────────────────────────────────────────────────────────
-def _use_color() -> bool:
-    return sys.stdout.isatty() and not os.environ.get("NO_COLOR")
-
-
-def _ansi(text: str, *styles: str) -> str:
-    if not _use_color():
-        return text
-    prefix = "".join(ANSI[style] for style in styles)
-    return f"{prefix}{text}{ANSI['reset']}"
-
-
-def _box_line(text: str, *, width: int = 56, styles: tuple[str, ...] = ()) -> str:
-    content = f"  {text}".ljust(width)
-    return _ansi("│", "cyan") + _ansi(content, *styles) + _ansi("│", "cyan")
-
-
-def _print_setup_banner() -> None:
-    width = 66
-    wordmark = [
-        " ____  _____ _____        _______    ___     _______",
-        "| __ )| ____| ____|_      _| ____|  / \\ \\   / / ____|",
-        "|  _ \\|  _| |  _| \\ \\ /\\ / /  _|   / _ \\ \\ / /|  _|",
-        "| |_) | |___| |___ \\ V  V /| |___ / ___ \\ V / | |___",
-        "|____/|_____|_____| \\_/\\_/ |_____/_/   \\_\\_/  |_____|",
-    ]
-    print()
-    print(_ansi(f"╭{'─' * width}╮", "cyan"))
-    for line in wordmark:
-        print(_box_line(line, width=width, styles=("bold", "green")))
-    print(_box_line("agent-native knowledge workbench", width=width, styles=("bold",)))
-    print(_box_line(f"version {__version__}", width=width, styles=("dim",)))
-    print(_ansi(f"╰{'─' * width}╯", "cyan"))
-    print()
-
-
 def cmd_setup(args: argparse.Namespace) -> int:
     mode = "copy" if args.copy else "symlink"
-    _print_setup_banner()
+    ui.print_setup_banner(__version__)
 
     try:
         selected_profile = profiles.choose_profile(
@@ -1045,19 +841,28 @@ def cmd_setup(args: argparse.Namespace) -> int:
         install_project(project_dir, mode, selected_agents)
 
     n = len(list_skills())
-    print("\n───────────────────────────────────────────────────")
-    print(" Setup complete!\n")
-    print(f" Skills installed: {n}  (mode: {mode})")
-    print(f" Profile:          {selected_profile}")
-    print(f" Config:           {config_path}")
+    summary_rows: list[tuple[str, str | int | None]] = [
+        ("Skills installed", f"{n} (mode: {mode})"),
+        ("Profile", selected_profile),
+        ("Config", str(config_path)),
+    ]
     if selected_agents:
-        print(f" Agents:           {', '.join(selected_agents)}")
+        summary_rows.append(("Agents", ", ".join(selected_agents)))
+    else:
+        summary_rows.append(("Agents", "none"))
     if not args.no_global:
-        print(f" Global skills:    {', '.join(_portable_skills(selected_global_extra))}")
+        summary_rows.append(("Global skills", ", ".join(_portable_skills(selected_global_extra))))
+    else:
+        summary_rows.append(("Global skills", "skipped"))
     if vault_path:
-        print(f" Vault:            {vault_path}")
+        summary_rows.append(("Vault", vault_path))
     if project_dir is not None:
-        print(f" Project:          {project_dir}")
+        summary_rows.append(("Project", str(project_dir)))
+        summary_rows.append(("Workbench", str(project_dir / "workbench")))
+    summary_rows.append(("Install mode", mode))
+
+    print()
+    ui.print_summary_panel("Setup complete", summary_rows)
     print("\n Next steps:")
     if project_dir is not None:
         print("   1. Open this project in your agent")
@@ -1068,40 +873,29 @@ def cmd_setup(args: argparse.Namespace) -> int:
     else:
         print("   1. Open any project in your agent")
         print("   2. Use the portable skills installed for cross-project work:")
+        print("      /beeweave-ingest /path/to/source")
         print("      /beeweave-update")
         print("      /beeweave-query what do I know about ...")
     print("\n From any project:")
+    print("   /beeweave-ingest    → ingest files, folders, URLs, or workbench inbox content")
     print("   /beeweave-update    → sync project knowledge into your vault")
     print("   /beeweave-query     → ask questions against your compiled vault")
-    print("───────────────────────────────────────────────────\n")
+    print()
     return 0
 
 
-def _confirm_uninstall(args: argparse.Namespace, agents: list[str], project_dir: Path | None) -> bool:
-    if args.yes:
-        return True
-    print("BeeWeave uninstall will remove:")
-    if not args.no_global:
-        print(f"  - global BeeWeave skills for agents: {', '.join(agents)}")
-    if project_dir is not None:
-        print(f"  - project-local BeeWeave skills/bootstrap files under: {project_dir}")
-    if not args.keep_config:
-        print(f"  - BeeWeave config directory: {GLOBAL_CONFIG_DIR}")
-    print("It will not remove your vault or workbench content.")
-    if not sys.stdin.isatty():
-        print("error: refusing to uninstall without --yes in a non-interactive shell", file=sys.stderr)
-        return False
-    from InquirerPy import inquirer
-
-    return bool(inquirer.confirm(message="Continue?", default=False).execute())
-
-
-def uninstall_global_config() -> int:
-    if not GLOBAL_CONFIG_DIR.exists():
-        return 0
-    shutil.rmtree(GLOBAL_CONFIG_DIR)
-    print(f"✅  Removed BeeWeave config → {GLOBAL_CONFIG_DIR}")
-    return 1
+def _uninstall_context() -> uninstall.UninstallContext:
+    return uninstall.UninstallContext(
+        home=HOME,
+        global_config_dir=GLOBAL_CONFIG_DIR,
+        global_config=GLOBAL_CONFIG,
+        agents=AGENTS,
+        bootstrap_files=BOOTSTRAP_FILES,
+        agent_aliases=AGENTS_ALIASES,
+        list_skills=list_skills,
+        bootstrap_dir=bootstrap_dir,
+        resolve_bootstrap_src=_resolve_bootstrap_src,
+    )
 
 
 def cmd_uninstall(args: argparse.Namespace) -> int:
@@ -1110,32 +904,7 @@ def cmd_uninstall(args: argparse.Namespace) -> int:
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-
-    project_dir: Path | None = None
-    if not args.no_project_local:
-        project_dir = Path(args.project or os.getcwd()).expanduser().resolve()
-
-    if not _confirm_uninstall(args, selected_agents, project_dir):
-        print("Uninstall cancelled.")
-        return 1
-
-    removed = 0
-    if not args.no_global:
-        for target, label in global_skill_dirs_for_agents(selected_agents):
-            removed += uninstall_skills(target, label)
-
-    if project_dir is not None:
-        removed += uninstall_project(project_dir, selected_agents)
-
-    if not args.keep_config:
-        removed += uninstall_global_config()
-
-    print("\n───────────────────────────────────────────────────")
-    print(" Uninstall complete!")
-    print(f" Removed items: {removed}")
-    print(" Vault/workbench content was left in place.")
-    print("───────────────────────────────────────────────────\n")
-    return 0
+    return uninstall.run_uninstall(_uninstall_context(), args, selected_agents)
 
 
 def cmd_graph_query(args: argparse.Namespace) -> int:
@@ -1244,24 +1013,20 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 def cmd_info(args: argparse.Namespace) -> int:
     bundled = list_skills()
-    print(f"BeeWeave {__version__}")
-    print(f"skills:    {skills_dir()}")
     boot = bootstrap_dir()
-    print(f"bootstrap: {boot if boot else '(not found)'}")
-    print(f"config:    {GLOBAL_CONFIG}{'' if GLOBAL_CONFIG.exists() else ' (not written yet)'}")
+    config_status = str(GLOBAL_CONFIG) if GLOBAL_CONFIG.exists() else f"{GLOBAL_CONFIG} (not written yet)"
+    vault_path = "(unset)"
+    workbench_path = "(unset)"
+    setup_ver = "(never)"
     if GLOBAL_CONFIG.exists():
-        vp = _read_config_value("BEEWEAVE_VAULT_PATH")
-        wp = _read_config_value("BEEWEAVE_WORKBENCH_PATH")
-        setup_ver = _read_config_value("BEEWEAVE_VERSION")
-        print(f"vault:     {vp or '(unset)'}")
-        print(f"workbench: {wp or '(unset)'}")
-        print(f"setup ran: {setup_ver or '(never)'}")
-    print(f"bundled skills: {len(bundled)}")
-    print()
-    print("Agent skill install status:")
+        vault_path = _read_config_value("BEEWEAVE_VAULT_PATH") or "(unset)"
+        workbench_path = _read_config_value("BEEWEAVE_WORKBENCH_PATH") or "(unset)"
+        setup_ver = _read_config_value("BEEWEAVE_VERSION") or "(never)"
+
     core_set = set(_portable_skills())
     recommended_extra_set = set(RECOMMENDED_GLOBAL_EXTRA_SKILLS)
     seen_dirs: set[str] = set()
+    agent_statuses: list[str] = []
     for agent, meta in AGENTS.items():
         rel = meta["global"]
         if rel is None or rel in seen_dirs:
@@ -1270,19 +1035,33 @@ def cmd_info(args: argparse.Namespace) -> int:
         agent_dir = HOME / str(rel)
         label = f"~/{rel}/ ({meta['label']}, portable)"
         if not agent_dir.is_dir():
-            print(f"  {label}: not installed")
+            agent_statuses.append(f"{label}: not installed")
             continue
         installed = {p.name for p in agent_dir.iterdir() if p.is_dir()}
         wiki_installed = installed & core_set
         missing = core_set - installed
         extras_installed = sorted(installed & recommended_extra_set)
-        status = "✅" if not missing else "⚠️ "
-        print(f"  {status} {label}: core {len(wiki_installed)}/{len(core_set)}", end="")
+        status = f"{label}: core {len(wiki_installed)}/{len(core_set)}"
         if missing:
-            print(f"  (run: bwe setup)", end="")
+            status += " (run: bwe setup)"
         if extras_installed:
-            print(f"  extras: {', '.join(extras_installed)}", end="")
-        print()
+            status += f" extras: {', '.join(extras_installed)}"
+        agent_statuses.append(status)
+
+    ui.print_summary_panel(
+        "BeeWeave info",
+        [
+            ("Version", __version__),
+            ("Config", config_status),
+            ("Vault", vault_path),
+            ("Workbench", workbench_path),
+            ("Repo", str(skills_dir().parent)),
+            ("Skills", f"{len(bundled)} bundled"),
+            ("Bootstrap", str(boot) if boot else "(not found)"),
+            ("Setup ran", setup_ver),
+            ("Agents", "; ".join(agent_statuses) if agent_statuses else "none"),
+        ],
+    )
     _check_stale()
     return 0
 
@@ -1292,14 +1071,10 @@ def _confirm_profile_overwrite() -> bool:
         print("error: refusing to overwrite default config without interactive YES", file=sys.stderr)
         return False
     try:
-        from InquirerPy import inquirer
-
-        entered = str(
-            inquirer.text(
-                message="Type YES to overwrite the default profile:",
-                validate=lambda value: value == "YES",
-                invalid_message='Type exactly "YES" to continue',
-            ).execute()
+        entered = ui.text_prompt(
+            message="Type YES to overwrite the default profile:",
+            validate=lambda value: value == "YES",
+            invalid_message='Type exactly "YES" to continue',
         ).strip()
     except ImportError:
         entered = input("Type YES to continue: ").strip()
@@ -1347,12 +1122,14 @@ def cmd_profile_set_default(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    print("✅  Default BeeWeave profile updated")
-    print(f"  Default:     {target}")
-    print(f"  Copied from: {source}")
+    rows: list[tuple[str, str | int | None]] = [
+        ("Default", str(target)),
+        ("Copied from", str(source)),
+        ("Named profile", "preserved"),
+    ]
     if actual_backup is not None:
-        print(f"  Backup:      {actual_backup}")
-    print(f"  Named profile preserved: {source}")
+        rows.append(("Backup", str(actual_backup)))
+    ui.print_summary_panel("Default profile updated", rows)
     return 0
 
 
@@ -1531,6 +1308,11 @@ def _add_uninstall_args(sp: argparse.ArgumentParser) -> None:
         "--no-project-local",
         action="store_true",
         help="skip project-local skill/bootstrap cleanup",
+    )
+    sp.add_argument(
+        "--all",
+        action="store_true",
+        help="also clean project-local installs inferred from all ~/.beeweave/config* profiles",
     )
     sp.add_argument(
         "--keep-config",
