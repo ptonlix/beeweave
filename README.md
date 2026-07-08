@@ -99,7 +99,8 @@ bwe info                                      # show version, config, and instal
 bwe list                                      # list bundled skills
 bwe setup --agents claude,codex               # install for specific agents
 bwe setup --global-extra beeweave-capture     # opt into advanced global skills
-bwe setup --profile work --activate           # create ~/.beeweave/config.work and make it active
+bwe setup --profile work                      # create or update ~/.beeweave/config.work
+bwe profile set-default work                  # copy config.work to the default config, with backup
 ```
 
 To remove BeeWeave from your agents and delete BeeWeave config:
@@ -294,6 +295,15 @@ beeweave-query @work what do I know about deployment rollbacks?
 
 The `@name` override applies only to that request and does not change the
 default profile.
+
+To intentionally make a named profile the default, copy it into
+`~/.beeweave/config` with a backup:
+
+```bash
+bwe profile set-default work
+```
+
+This preserves `~/.beeweave/config.work`, so `@work` still works.
 All supported agents can use this syntax, including Claude Code, Cursor, Windsurf, Codex, Gemini,
 Kiro, Hermes, OpenClaw, Pi, Copilot CLI, and generic `AGENTS.md` agents.
 

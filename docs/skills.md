@@ -47,4 +47,13 @@ beeweave-query @work what do I know about deployment rollbacks?
 
 The override applies only to that request.
 
+To make a named profile the default for future requests without `@name`, run:
+
+```bash
+bwe profile set-default work
+```
+
+BeeWeave backs up the existing `~/.beeweave/config` before copying
+`~/.beeweave/config.work` into place.
+
 ![Skills scope map](assets/skills-scope-map.png)

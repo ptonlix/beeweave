@@ -14,6 +14,7 @@ import json
 import os
 import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from beeweave import __version__
@@ -22,6 +23,15 @@ from beeweave import profiles
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
 GLOBAL_CONFIG = GLOBAL_CONFIG_DIR / "config"
+
+ANSI = {
+    "reset": "\033[0m",
+    "dim": "\033[2m",
+    "bold": "\033[1m",
+    "cyan": "\033[36m",
+    "green": "\033[32m",
+    "magenta": "\033[35m",
+}
 
 # Skills usable from any project through the global BeeWeave config. Keep the
 # default set focused on the core cross-project workflows. Extra global skills
@@ -950,21 +960,50 @@ def _check_stale() -> None:
 
 
 # ── Commands ─────────────────────────────────────────────────────────────────
+def _use_color() -> bool:
+    return sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+
+
+def _ansi(text: str, *styles: str) -> str:
+    if not _use_color():
+        return text
+    prefix = "".join(ANSI[style] for style in styles)
+    return f"{prefix}{text}{ANSI['reset']}"
+
+
+def _box_line(text: str, *, width: int = 56, styles: tuple[str, ...] = ()) -> str:
+    content = f"  {text}".ljust(width)
+    return _ansi("│", "cyan") + _ansi(content, *styles) + _ansi("│", "cyan")
+
+
+def _print_setup_banner() -> None:
+    width = 66
+    wordmark = [
+        " ____  _____ _____        _______    ___     _______",
+        "| __ )| ____| ____|_      _| ____|  / \\ \\   / / ____|",
+        "|  _ \\|  _| |  _| \\ \\ /\\ / /  _|   / _ \\ \\ / /|  _|",
+        "| |_) | |___| |___ \\ V  V /| |___ / ___ \\ V / | |___",
+        "|____/|_____|_____| \\_/\\_/ |_____/_/   \\_\\_/  |_____|",
+    ]
+    print()
+    print(_ansi(f"╭{'─' * width}╮", "cyan"))
+    for line in wordmark:
+        print(_box_line(line, width=width, styles=("bold", "green")))
+    print(_box_line("agent-native knowledge workbench", width=width, styles=("bold",)))
+    print(_box_line(f"version {__version__}", width=width, styles=("dim",)))
+    print(_ansi(f"╰{'─' * width}╯", "cyan"))
+    print()
+
+
 def cmd_setup(args: argparse.Namespace) -> int:
     mode = "copy" if args.copy else "symlink"
-    print("\n╔══════════════════════════════════════════════════╗")
-    print("║               BeeWeave Agent Setup               ║")
-    print("╚══════════════════════════════════════════════════╝\n")
+    _print_setup_banner()
 
     try:
         selected_profile = profiles.choose_profile(
             args.profile,
             config_dir=GLOBAL_CONFIG_DIR,
             default_config=GLOBAL_CONFIG,
-        )
-        activate_profile = profiles.choose_activate_profile(
-            selected_profile,
-            activate=args.activate,
         )
         selected_global_extra = choose_global_extra(args.global_extra, no_global=args.no_global)
         selected_agents = choose_agents(args.agents)
@@ -988,8 +1027,6 @@ def cmd_setup(args: argparse.Namespace) -> int:
         print(f"✅  Initialized vault layout → {Path(vault_path).expanduser().resolve()}")
     workbench_path = str(project_dir / "workbench") if project_dir is not None else None
     write_config(vault_path, workbench_path, config_path=config_path)
-    if selected_profile != "default" and activate_profile:
-        profiles.activate_profile(selected_profile, config_path=config_path, default_config=GLOBAL_CONFIG)
     if not vault_path:
         print("    → Vault path not set yet. Re-run with `--vault /path/to/vault`")
         print(f"      or edit BEEWEAVE_VAULT_PATH in {config_path}.")
@@ -1250,6 +1287,75 @@ def cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def _confirm_profile_overwrite() -> bool:
+    if not sys.stdin.isatty():
+        print("error: refusing to overwrite default config without interactive YES", file=sys.stderr)
+        return False
+    try:
+        from InquirerPy import inquirer
+
+        entered = str(
+            inquirer.text(
+                message="Type YES to overwrite the default profile:",
+                validate=lambda value: value == "YES",
+                invalid_message='Type exactly "YES" to continue',
+            ).execute()
+        ).strip()
+    except ImportError:
+        entered = input("Type YES to continue: ").strip()
+    if entered != "YES":
+        print("Cancelled.")
+        return False
+    return True
+
+
+def cmd_profile_set_default(args: argparse.Namespace) -> int:
+    try:
+        profile = profiles.validate_profile_name(args.name)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    if profile == "default":
+        print("error: default is already the default profile", file=sys.stderr)
+        return 1
+
+    source = profiles.config_path_for_profile(profile, config_dir=GLOBAL_CONFIG_DIR, default_config=GLOBAL_CONFIG)
+    if not source.is_file():
+        print(f"error: profile config not found: {source}", file=sys.stderr)
+        return 1
+
+    now = datetime.now()
+    backup = profiles.backup_path_for_default(GLOBAL_CONFIG, now=now) if GLOBAL_CONFIG.exists() or GLOBAL_CONFIG.is_symlink() else None
+    print("Set BeeWeave default profile")
+    print(f"  Source: {source}")
+    print(f"  Target: {GLOBAL_CONFIG}")
+    if backup is not None:
+        print(f"  Backup: {backup}")
+        print()
+        print("This will overwrite the current default BeeWeave profile.")
+        if not _confirm_profile_overwrite():
+            return 1
+
+    try:
+        source, target, actual_backup = profiles.set_default_profile(
+            profile,
+            config_dir=GLOBAL_CONFIG_DIR,
+            default_config=GLOBAL_CONFIG,
+            now=now,
+        )
+    except (OSError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print("✅  Default BeeWeave profile updated")
+    print(f"  Default:     {target}")
+    print(f"  Copied from: {source}")
+    if actual_backup is not None:
+        print(f"  Backup:      {actual_backup}")
+    print(f"  Named profile preserved: {source}")
+    return 0
+
+
 # ── Argument parsing ─────────────────────────────────────────────────────────
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
@@ -1272,6 +1378,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     ip = sub.add_parser("info", help="show install paths, version, and config")
     ip.set_defaults(func=cmd_info)
+
+    pp = sub.add_parser("profile", help="manage BeeWeave profile config files")
+    profile_sub = pp.add_subparsers(dest="profile_command")
+    psd = profile_sub.add_parser("set-default", help="copy a named profile to ~/.beeweave/config")
+    psd.add_argument("name", help="named profile to copy from ~/.beeweave/config.NAME")
+    psd.set_defaults(func=cmd_profile_set_default)
 
     gq = sub.add_parser(
         "graph-query",
@@ -1348,11 +1460,6 @@ def _add_setup_args(sp: argparse.ArgumentParser) -> None:
         "--profile",
         metavar="NAME",
         help='BeeWeave profile to write: "default" for ~/.beeweave/config, or NAME for ~/.beeweave/config.NAME',
-    )
-    sp.add_argument(
-        "--activate",
-        action="store_true",
-        help="when used with --profile NAME, make ~/.beeweave/config point to ~/.beeweave/config.NAME",
     )
     sp.add_argument(
         "--project",

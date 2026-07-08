@@ -30,6 +30,9 @@ pyproject.toml  # Packaging and CLI entrypoint
 
 - Keep implementation changes scoped to the active request or OpenSpec change.
 - Prefer existing CLI/setup/skill patterns over new abstractions.
+- For terminal interaction in the BeeWeave CLI, use InquirerPy consistently for
+  prompts, selections, checkboxes, confirmations, and text input. Keep
+  non-interactive and missing-InquirerPy fallbacks deterministic and prompt-free.
 - Use `apply_patch` for manual file edits.
 - Do not recreate runtime `vault/` or `workbench/` directories in the repo root.
 - Preserve user work and unrelated dirty files.

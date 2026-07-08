@@ -41,4 +41,13 @@ beeweave-query @work what do I know about deployment rollbacks?
 
 该覆盖只影响当前请求。
 
+如果要把某个命名 profile 设为之后不带 `@name` 时使用的默认配置，运行：
+
+```bash
+bwe profile set-default work
+```
+
+BeeWeave 会先备份已有的 `~/.beeweave/config`，再把
+`~/.beeweave/config.work` 复制过去。
+
 ![技能作用范围](../assets/skills-scope-map.png)

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sys
+import shutil
+from datetime import datetime
 from pathlib import Path
 
 NEW_PROFILE_CHOICE = "__new_profile__"
@@ -139,14 +141,38 @@ def choose_profile(raw_profile: str | None, *, config_dir: Path, default_config:
         return choose_profile_numbered(config_dir=config_dir, default_config=default_config)
 
 
-def choose_activate_profile(profile: str, *, activate: bool) -> bool:
-    return profile != "default" and activate
+def backup_path_for_default(default_config: Path, *, now: datetime | None = None) -> Path:
+    stamp = (now or datetime.now()).strftime("%Y%m%d-%H%M%S")
+    base = default_config.with_name(f"{default_config.name}.backup-{stamp}")
+    candidate = base
+    suffix = 2
+    while candidate.exists() or candidate.is_symlink():
+        candidate = default_config.with_name(f"{default_config.name}.backup-{stamp}-{suffix}")
+        suffix += 1
+    return candidate
 
 
-def activate_profile(profile: str, *, config_path: Path, default_config: Path) -> None:
-    if profile == "default":
-        return
+def set_default_profile(
+    profile: str,
+    *,
+    config_dir: Path,
+    default_config: Path,
+    now: datetime | None = None,
+) -> tuple[Path, Path, Path | None]:
+    name = validate_profile_name(profile)
+    if name == "default":
+        raise ValueError("default is already the default profile")
+
+    source = config_path_for_profile(name, config_dir=config_dir, default_config=default_config)
+    if not source.is_file():
+        raise FileNotFoundError(f"profile config not found: {source}")
+
+    config_dir.mkdir(parents=True, exist_ok=True)
+    backup: Path | None = None
     if default_config.exists() or default_config.is_symlink():
+        backup = backup_path_for_default(default_config, now=now)
+        shutil.copy2(default_config, backup)
         default_config.unlink()
-    default_config.symlink_to(config_path.name)
-    print(f"✅  Active profile set to {profile} → {default_config}")
+
+    shutil.copy2(source, default_config)
+    return source, default_config, backup

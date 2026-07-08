@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
@@ -127,6 +128,79 @@ def test_parse_profile_menu_selection_supports_existing_and_new_choice():
     assert profiles.parse_profile_menu_selection("new", available) == profiles.NEW_PROFILE_CHOICE
     with pytest.raises(ValueError, match="unknown profile"):
         profiles.parse_profile_menu_selection("new-work", available)
+
+
+def test_setup_rejects_activate_flag():
+    with pytest.raises(SystemExit):
+        cli.build_parser().parse_args(["setup", "--activate"])
+
+
+def test_set_default_profile_copies_named_profile_and_keeps_backup(tmp_path):
+    config_dir = tmp_path / ".beeweave"
+    config_dir.mkdir()
+    default_config = config_dir / "config"
+    named_config = config_dir / "config.work"
+    default_config.write_text("BEEWEAVE_VAULT_PATH=/old\n", encoding="utf-8")
+    named_config.write_text("BEEWEAVE_VAULT_PATH=/work\n", encoding="utf-8")
+
+    source, target, backup = profiles.set_default_profile(
+        "work",
+        config_dir=config_dir,
+        default_config=default_config,
+        now=datetime(2026, 7, 8, 12, 30, 45),
+    )
+
+    assert source == named_config
+    assert target == default_config
+    assert backup == config_dir / "config.backup-20260708-123045"
+    assert default_config.read_text(encoding="utf-8") == "BEEWEAVE_VAULT_PATH=/work\n"
+    assert named_config.read_text(encoding="utf-8") == "BEEWEAVE_VAULT_PATH=/work\n"
+    assert backup.read_text(encoding="utf-8") == "BEEWEAVE_VAULT_PATH=/old\n"
+
+
+def test_backup_path_for_default_avoids_existing_backup(tmp_path):
+    default_config = tmp_path / "config"
+    existing = tmp_path / "config.backup-20260708-123045"
+    existing.write_text("previous\n", encoding="utf-8")
+
+    backup = profiles.backup_path_for_default(default_config, now=datetime(2026, 7, 8, 12, 30, 45))
+
+    assert backup == tmp_path / "config.backup-20260708-123045-2"
+
+
+def test_profile_set_default_requires_confirm_when_default_exists(tmp_path, monkeypatch):
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
+    monkeypatch.setattr(cli.sys.stdin, "isatty", lambda: True)
+    (tmp_path / ".beeweave").mkdir()
+    (tmp_path / ".beeweave" / "config").write_text("BEEWEAVE_VAULT_PATH=/old\n", encoding="utf-8")
+    (tmp_path / ".beeweave" / "config.work").write_text("BEEWEAVE_VAULT_PATH=/work\n", encoding="utf-8")
+    monkeypatch.setattr("builtins.input", lambda prompt="": "no")
+
+    args = cli.build_parser().parse_args(["profile", "set-default", "work"])
+
+    assert args.func(args) == 1
+    assert (tmp_path / ".beeweave" / "config").read_text(encoding="utf-8") == "BEEWEAVE_VAULT_PATH=/old\n"
+
+
+def test_profile_set_default_accepts_yes_confirmation(tmp_path, monkeypatch):
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
+    monkeypatch.setattr(cli.sys.stdin, "isatty", lambda: True)
+    (tmp_path / ".beeweave").mkdir()
+    (tmp_path / ".beeweave" / "config").write_text("BEEWEAVE_VAULT_PATH=/old\n", encoding="utf-8")
+    (tmp_path / ".beeweave" / "config.work").write_text("BEEWEAVE_VAULT_PATH=/work\n", encoding="utf-8")
+    monkeypatch.setattr("builtins.input", lambda prompt="": "YES")
+    monkeypatch.setitem(cli.sys.modules, "InquirerPy", None)
+
+    args = cli.build_parser().parse_args(["profile", "set-default", "work"])
+
+    assert args.func(args) == 0
+    assert (tmp_path / ".beeweave" / "config").read_text(encoding="utf-8") == "BEEWEAVE_VAULT_PATH=/work\n"
+    assert (tmp_path / ".beeweave" / "config.work").read_text(encoding="utf-8") == "BEEWEAVE_VAULT_PATH=/work\n"
+    backups = sorted((tmp_path / ".beeweave").glob("config.backup-*"))
+    assert len(backups) == 1
+    assert backups[0].read_text(encoding="utf-8") == "BEEWEAVE_VAULT_PATH=/old\n"
 
 
 def test_install_project_only_selected_agent_dirs(tmp_path, monkeypatch):
@@ -276,36 +350,6 @@ def test_setup_named_profile_writes_config_name_without_activation(tmp_path, mon
     resolved_project = project.resolve()
     assert f'BEEWEAVE_VAULT_PATH="{resolved_project / "vault"}"' in config
     assert f'BEEWEAVE_WORKBENCH_PATH="{resolved_project / "workbench"}"' in config
-
-
-def test_setup_named_profile_can_activate_default_symlink(tmp_path, monkeypatch):
-    root = tmp_path / ".skills"
-    _skill(root / "wiki" / "beeweave-query")
-    _skill(root / "wiki" / "beeweave-update")
-    _skill(root / "wiki" / "beeweave-ingest")
-    monkeypatch.setattr(cli, "skills_dir", lambda: root)
-    monkeypatch.setattr(cli, "bootstrap_dir", lambda: None)
-    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
-    monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
-    project = tmp_path / "work"
-
-    args = cli.build_parser().parse_args([
-        "setup",
-        "--profile",
-        "work",
-        "--activate",
-        "--project",
-        str(project),
-        "--agents",
-        "none",
-        "--no-global",
-    ])
-
-    assert args.func(args) == 0
-    active_config = tmp_path / ".beeweave" / "config"
-    assert active_config.is_symlink()
-    assert active_config.readlink() == Path("config.work")
-    assert f'BEEWEAVE_VAULT_PATH="{project.resolve() / "vault"}"' in active_config.read_text(encoding="utf-8")
 
 
 def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):
