@@ -603,7 +603,8 @@
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--global-extra<span class="w"> </span>beeweave-capture
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--profile<span class="w"> </span>work
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>info
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>uninstall<span class="w"> </span>--all
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>bwe<span class="w"> </span>info
 </code></pre></div>
 <p>Run <code>bwe setup</code> from the workspace where you want runtime <code>vault/</code> and
 <code>workbench/</code> folders to be created.</p>
@@ -616,6 +617,9 @@ a new profile name without leaving setup.</p>
 <code>~/.beeweave/config.NAME</code> to <code>~/.beeweave/config</code>. If a default config already
 exists, BeeWeave creates a timestamped backup and requires <code>YES</code> before
 overwriting it.</p>
+<p>Use <code>bwe uninstall --all</code> to also clean project-local BeeWeave files from
+workspaces referenced by all BeeWeave profile configs. Vault and workbench
+content is preserved.</p>
 
 
 

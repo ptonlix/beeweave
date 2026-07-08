@@ -603,11 +603,14 @@
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--global-extra<span class="w"> </span>beeweave-capture
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--profile<span class="w"> </span>work
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>info
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>uninstall<span class="w"> </span>--all
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>bwe<span class="w"> </span>info
 </code></pre></div>
 <p>请在你希望创建运行时 <code>vault/</code> 和 <code>workbench/</code> 的工作区里运行 <code>bwe setup</code>。</p>
 <p>默认情况下，setup 写入 <code>~/.beeweave/config</code>。使用 <code>--profile NAME</code> 会写入命名配置 <code>~/.beeweave/config.NAME</code>。setup 不负责激活命名 profile，也不会把 <code>~/.beeweave/config</code> 软链接到其它文件；在 Agent 请求里使用 <code>@name</code> 来指定命名 profile。交互式 setup 里可以选择 <code>new profile...</code>，然后输入新的 profile 名称。</p>
 <p>如果需要把某个命名 profile 明确设为默认配置，使用 <code>bwe profile set-default NAME</code>。它会把 <code>~/.beeweave/config.NAME</code> 复制到 <code>~/.beeweave/config</code>；如果默认配置已经存在，会先创建时间戳备份，并要求输入 <code>YES</code> 后才覆盖。</p>
+<p>如果需要卸载所有 BeeWeave profile 关联工作区中的 project-local 文件，使用
+<code>bwe uninstall --all</code>。该命令仍会保留 vault 和 workbench 内容。</p>
 
 
 
