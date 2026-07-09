@@ -437,6 +437,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      外部 Skills
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#profile" class="md-nav__link">
     <span class="md-ellipsis">
       命名 Profile 路由
@@ -551,6 +560,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      外部 Skills
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#profile" class="md-nav__link">
     <span class="md-ellipsis">
       命名 Profile 路由
@@ -601,14 +619,45 @@
 </ul>
 <h2 id="_4">项目本地技能<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>完整 BeeWeave skill 集会安装到你选择的项目本地 Agent 目录中。这样其它项目保持干净，而 BeeWeave 工作区拥有完整工作流能力。</p>
+<p>Workbench/project-local skills 包括：</p>
+<ul>
+<li><code>beeweave-article-writer</code>：起草长文、博客、文章和观点稿。</li>
+<li><code>beeweave-article-publisher</code>：把完成稿移动到
+  <code>workbench/articles/published/</code>，并把发布内容 ingest 进 vault。</li>
+<li><code>beeweave-ppt-writer</code>：在 <code>workbench/ppt/</code> 下创建 HTML PPT 项目，需要时
+  可配合 <code>guizang-ppt-skill</code> 等外部 PPT skills 使用。</li>
+<li><code>beeweave-social-writer</code>：起草 X/Twitter 帖子、thread、短观点和社交文案。</li>
+<li><code>beeweave-url-capture</code>：把 URL 下载到 <code>workbench/inbox/web/</code>，形成自包含的
+  原始捕获包，然后交给 <code>/beeweave-ingest workbench/inbox</code>。</li>
+<li><code>baoyu-url-to-markdown</code>：<code>beeweave-url-capture</code> 使用的项目本地 URL 抽取依赖；
+  它不会作为默认全局 skill 安装。</li>
+</ul>
+<h2 id="skills">外部 Skills<a class="headerlink" href="#skills" title="Permanent link">&para;</a></h2>
+<p>外部 skills 是由用户安装的第三方 Agent skills，通过 <code>bwe external</code> 管理。
+它们存放在 BeeWeave 运行目录之外：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>~/.beeweave/external/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>+-- repos/       # 克隆下来的源仓库
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>+-- skills/      # 按 skill 名称稳定暴露的入口
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>+-- manifest.json
+</code></pre></div>
+<p>安装一个外部 skill，并链接到当前工作区：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+</code></pre></div>
+<p>对于包含多个 skills 的仓库，请使用 <code>--skill</code> 或 <code>--path</code> 明确选择；
+BeeWeave 不会默认安装整个多 skill 仓库，除非你显式传入 <code>--all</code>。</p>
+<p>外部 skills 不会被打包进 BeeWeave wheel、源码 <code>.skills/</code> 目录、vault 或
+workbench。使用 <code>bwe external list</code> 和 <code>bwe external info &lt;skill-name&gt;</code>
+可以查看本机已经安装的外部 skills。</p>
 <h2 id="profile">命名 Profile 路由<a class="headerlink" href="#profile" title="Permanent link">&para;</a></h2>
 <p>可以创建 <code>~/.beeweave/config.work</code> 这样的命名配置。每个配置都是一套完整的 BeeWeave profile，包括 vault 路径、workbench 路径、QMD 设置和工具专用路径。然后只为单次请求使用 <code>@name</code>：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>beeweave-query @work what do I know about deployment rollbacks?
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>@research update my BeeWeave vault
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>beeweave-query @work what do I know about deployment rollbacks?
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>@research update my BeeWeave vault
 </code></pre></div>
 <p>该覆盖只影响当前请求。</p>
 <p>如果要把某个命名 profile 设为之后不带 <code>@name</code> 时使用的默认配置，运行：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
 </code></pre></div>
 <p>BeeWeave 会先备份已有的 <code>~/.beeweave/config</code>，再把
 <code>~/.beeweave/config.work</code> 复制过去。</p>

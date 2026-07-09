@@ -467,6 +467,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      外部 Skills
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upgrade
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -559,6 +577,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      外部 Skills
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrade" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upgrade
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -583,9 +619,11 @@
 <h2 id="_1">核心命令<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bwe setup             安装 skills 并写入配置
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bwe profile           管理 BeeWeave profile 配置文件
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bwe uninstall         移除 BeeWeave skills 和配置
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe list              列出内置 skills
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bwe info              查看安装路径、版本和配置
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bwe external          管理用户安装的外部 Agent skills
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe uninstall         移除 BeeWeave skills 和配置
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bwe upgrade           升级 BeeWeave 并刷新已安装 skills
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>bwe list              列出内置 skills
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>bwe info              查看安装路径、版本和配置
 </code></pre></div>
 <h2 id="_2">知识与图谱辅助命令<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bwe graph-query       查询 vault wikilink index
@@ -603,14 +641,62 @@
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--global-extra<span class="w"> </span>beeweave-capture
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bwe<span class="w"> </span>setup<span class="w"> </span>--profile<span class="w"> </span>work
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>uninstall<span class="w"> </span>--all
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>bwe<span class="w"> </span>info
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span>--link-project<span class="w"> </span>.
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>bwe<span class="w"> </span>external<span class="w"> </span>list
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>bwe<span class="w"> </span>uninstall<span class="w"> </span>--all
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>bwe<span class="w"> </span>upgrade<span class="w"> </span>--check
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>bwe<span class="w"> </span>upgrade
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>bwe<span class="w"> </span>info
 </code></pre></div>
 <p>请在你希望创建运行时 <code>vault/</code> 和 <code>workbench/</code> 的工作区里运行 <code>bwe setup</code>。</p>
 <p>默认情况下，setup 写入 <code>~/.beeweave/config</code>。使用 <code>--profile NAME</code> 会写入命名配置 <code>~/.beeweave/config.NAME</code>。setup 不负责激活命名 profile，也不会把 <code>~/.beeweave/config</code> 软链接到其它文件；在 Agent 请求里使用 <code>@name</code> 来指定命名 profile。交互式 setup 里可以选择 <code>new profile...</code>，然后输入新的 profile 名称。</p>
 <p>如果需要把某个命名 profile 明确设为默认配置，使用 <code>bwe profile set-default NAME</code>。它会把 <code>~/.beeweave/config.NAME</code> 复制到 <code>~/.beeweave/config</code>；如果默认配置已经存在，会先创建时间戳备份，并要求输入 <code>YES</code> 后才覆盖。</p>
 <p>如果需要卸载所有 BeeWeave profile 关联工作区中的 project-local 文件，使用
 <code>bwe uninstall --all</code>。该命令仍会保留 vault 和 workbench 内容。</p>
+<h2 id="skills">外部 Skills<a class="headerlink" href="#skills" title="Permanent link">&para;</a></h2>
+<p>使用 <code>bwe external</code> 管理第三方 Agent skills。外部 skills 不会被 vendored
+进 BeeWeave 包本身，也不会写入运行时 <code>vault/</code> 或 <code>workbench/</code> 目录。</p>
+<p>外部 skills 存放在：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>~/.beeweave/external/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>+-- repos/       # 克隆下来的源仓库
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>+-- skills/      # 按 skill 名称稳定暴露的入口
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>+-- manifest.json
+</code></pre></div>
+<p>常用命令：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>&lt;source&gt;<span class="w"> </span>--skill<span class="w"> </span>&lt;name&gt;<span class="w"> </span>--link-project<span class="w"> </span>.
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>bwe<span class="w"> </span>external<span class="w"> </span>link<span class="w"> </span>&lt;skill-name&gt;<span class="w"> </span>--project<span class="w"> </span>.
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>bwe<span class="w"> </span>external<span class="w"> </span>list
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>bwe<span class="w"> </span>external<span class="w"> </span>info<span class="w"> </span>&lt;skill-name&gt;
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>bwe<span class="w"> </span>external<span class="w"> </span>update<span class="w"> </span><span class="o">[</span>skill-name<span class="o">]</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>bwe<span class="w"> </span>external<span class="w"> </span>remove<span class="w"> </span>&lt;skill-name&gt;
+</code></pre></div>
+<p><code>&lt;source&gt;</code> 可以是 GitHub URL、git URL、<code>owner/repo</code> 简写、GitHub tree
+URL 或本地路径。使用 <code>--ref</code> 可以指定分支、标签或 commit。</p>
+<p>如果一个仓库里包含多个 skills，需要明确选择要安装哪一个：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/JimLiu/baoyu-skills<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-url-to-markdown
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
+</code></pre></div>
+<p>BeeWeave 不会默认安装多 skill 仓库里的所有 skills，除非你显式传入
+<code>--all</code>。如果要把已经安装的外部 skill 链接到另一个工作区，使用
+<code>bwe external link &lt;skill-name&gt; --project &lt;path&gt;</code>。</p>
+<h2 id="upgrade">Upgrade<a class="headerlink" href="#upgrade" title="Permanent link">&para;</a></h2>
+<p>使用 <code>bwe upgrade --check</code> 只检查当前安装的 BeeWeave 版本是否落后于最新包版本，不修改文件。</p>
+<p>常规升级使用：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>bwe<span class="w"> </span>upgrade
+</code></pre></div>
+<p>BeeWeave 会检测受支持的安装方式，并使用对应命令升级：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>upgrade<span class="w"> </span>beeweave
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>beeweave
+</code></pre></div>
+<p>成功升级后，BeeWeave 会复放之前 <code>bwe setup</code> 记录的安装选择，刷新对应
+profile 和工作区里的 Agent skill 目录。如果没有 setup replay 状态，请手动运行一次 <code>bwe setup</code>。</p>
+<p>源码 checkout 或暂不支持的安装方式不会被自动修改；<code>bwe upgrade</code> 会输出保守的手动升级建议。</p>
 
 
 
