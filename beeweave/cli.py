@@ -17,7 +17,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from beeweave import __version__, profiles, ui, uninstall, upgrade
+from beeweave import __version__, profiles, ui, uninstall, update_notice, upgrade
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
@@ -784,6 +784,11 @@ def _check_stale() -> None:
 def cmd_setup(args: argparse.Namespace) -> int:
     mode = "copy" if args.copy else "symlink"
     ui.print_setup_banner(__version__)
+    update_notice.maybe_print_update_notice(
+        current_version=__version__,
+        config_dir=GLOBAL_CONFIG_DIR,
+        package_file=__file__,
+    )
 
     try:
         selected_profile = profiles.choose_profile(
@@ -912,6 +917,11 @@ def cmd_uninstall(args: argparse.Namespace) -> int:
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+    update_notice.maybe_print_update_notice(
+        current_version=__version__,
+        config_dir=GLOBAL_CONFIG_DIR,
+        package_file=__file__,
+    )
     return uninstall.run_uninstall(_uninstall_context(), args, selected_agents)
 
 
@@ -1504,13 +1514,20 @@ def main(argv: list[str] | None = None) -> int:
     if getattr(args, "command", None) not in ("setup", "uninstall", "info", "upgrade", None):
         _check_stale()
     try:
-        return args.func(args)
+        code = args.func(args)
     except KeyboardInterrupt:
         print("\nsetup cancelled.", file=sys.stderr)
         return 130
     except (FileNotFoundError, RuntimeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+    if getattr(args, "command", None) in ("info",):
+        update_notice.maybe_print_update_notice(
+            current_version=__version__,
+            config_dir=GLOBAL_CONFIG_DIR,
+            package_file=__file__,
+        )
+    return code
 
 
 if __name__ == "__main__":
