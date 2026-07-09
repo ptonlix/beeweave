@@ -138,6 +138,7 @@ project/
     +-- articles/
     |   +-- drafts/
     |   +-- published/
+    +-- ppt/
     +-- library/
 ```
 
@@ -145,6 +146,20 @@ Use `workbench/` for rough notes, web captures, imported sources, and drafts.
 Use `vault/` for stable pages that should be searchable, linkable, and reusable.
 `bwe setup` creates these directories with `.gitkeep` placeholders so the
 layout is ready before the first ingest.
+
+External third-party skills are managed outside project runtime folders:
+
+```text
+~/.beeweave/external/
++-- repos/       # cloned source repositories
++-- skills/      # stable skill-name entries
++-- manifest.json
+```
+
+Use `bwe external install <source> --skill <name> --link-project .` to install
+one external skill and link it into the current project's Agent skill folders.
+For multi-skill repositories, specify `--skill` or `--path`; BeeWeave does not
+install every skill from a repository unless `--all` is explicit.
 
 ## 🎯 Skill Install Policy
 

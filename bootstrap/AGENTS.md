@@ -42,6 +42,7 @@ workbench/
 ├── articles/
 │   ├── drafts/         # article drafts and saved beeweave-digest outputs
 │   └── published/      # published copies or publication records
+├── ppt/                # HTML PPT projects and presentation assets
 └── library/            # source notes and reading material
 ```
 
@@ -79,12 +80,14 @@ work in `workbench/` until they are distilled.
 - `/beeweave-status`: show pending work, staged writes, and vault health.
 - `/beeweave-digest`: summarize recent vault changes; saved digests go to
   `workbench/articles/drafts/digest-YYYY-MM-DD.md`.
+- `/beeweave-ppt-writer`: create HTML PPT projects under `workbench/ppt/`.
 - `/beeweave-stage-commit`: review and promote files from `$BEEWEAVE_VAULT_PATH/_staging/`.
 
 ## Boundaries
 
 - `workbench/inbox/` is unprocessed input.
 - `workbench/articles/drafts/` is creation work.
+- `workbench/ppt/` is presentation creation work and generated deck assets.
 - `$BEEWEAVE_VAULT_PATH/_staging/` is compiled candidate knowledge awaiting review.
 - `$BEEWEAVE_VAULT_PATH/` category directories are stable knowledge.
 

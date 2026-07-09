@@ -20,6 +20,7 @@ def test_list_skills_supports_grouped_layout(tmp_path, monkeypatch):
     _skill(root / "wiki" / "beeweave-update")
     _skill(root / "workbench" / "baoyu-url-to-markdown")
     _skill(root / "workbench" / "beeweave-article-writer")
+    _skill(root / "workbench" / "beeweave-ppt-writer")
     _skill(root / "workbench" / "beeweave-url-capture")
 
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
@@ -27,6 +28,7 @@ def test_list_skills_supports_grouped_layout(tmp_path, monkeypatch):
     assert cli.list_skills() == [
         "baoyu-url-to-markdown",
         "beeweave-article-writer",
+        "beeweave-ppt-writer",
         "beeweave-query",
         "beeweave-update",
         "beeweave-url-capture",
@@ -83,6 +85,7 @@ def test_project_layout_initializers_create_fixed_skeleton(tmp_path):
     assert (workbench / "inbox" / "web").is_dir()
     assert (workbench / "inbox" / "archived").is_dir()
     assert (workbench / "inbox" / "rejected").is_dir()
+    assert (workbench / "ppt").is_dir()
     assert not (workbench / "inbox" / "_archived").exists()
 
 
@@ -318,6 +321,7 @@ def test_install_project_supports_codex_project_skills(tmp_path, monkeypatch):
     _skill(root / "wiki" / "beeweave-query")
     _skill(root / "workbench" / "baoyu-url-to-markdown")
     _skill(root / "workbench" / "beeweave-article-writer")
+    _skill(root / "workbench" / "beeweave-ppt-writer")
     _skill(root / "workbench" / "beeweave-url-capture")
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
     monkeypatch.setattr(cli, "bootstrap_dir", lambda: None)
@@ -326,6 +330,7 @@ def test_install_project_supports_codex_project_skills(tmp_path, monkeypatch):
 
     assert (tmp_path / ".codex" / "skills" / "beeweave-query" / "SKILL.md").exists()
     assert (tmp_path / ".codex" / "skills" / "beeweave-article-writer" / "SKILL.md").exists()
+    assert (tmp_path / ".codex" / "skills" / "beeweave-ppt-writer" / "SKILL.md").exists()
     assert (tmp_path / ".codex" / "skills" / "beeweave-url-capture" / "SKILL.md").exists()
     assert (tmp_path / ".codex" / "skills" / "baoyu-url-to-markdown" / "SKILL.md").exists()
 
@@ -512,6 +517,7 @@ def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):
     _skill(root / "wiki" / "beeweave-update")
     _skill(root / "workbench" / "baoyu-url-to-markdown")
     _skill(root / "workbench" / "beeweave-article-writer")
+    _skill(root / "workbench" / "beeweave-ppt-writer")
     _skill(root / "workbench" / "beeweave-url-capture")
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
 
@@ -524,8 +530,33 @@ def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):
     assert (target / "beeweave-query" / "SKILL.md").exists()
     assert (target / "beeweave-update" / "SKILL.md").exists()
     assert not (target / "beeweave-article-writer").exists()
+    assert not (target / "beeweave-ppt-writer").exists()
     assert not (target / "beeweave-url-capture").exists()
     assert not (target / "baoyu-url-to-markdown").exists()
+
+
+def test_stale_check_only_requires_portable_global_skills(tmp_path, monkeypatch, capsys):
+    root = tmp_path / ".skills"
+    _skill(root / "wiki" / "beeweave-ingest")
+    _skill(root / "wiki" / "beeweave-query")
+    _skill(root / "wiki" / "beeweave-update")
+    _skill(root / "workbench" / "beeweave-article-writer")
+    _skill(root / "workbench" / "beeweave-ppt-writer")
+    monkeypatch.setattr(cli, "skills_dir", lambda: root)
+    monkeypatch.setattr(cli, "HOME", tmp_path)
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG", tmp_path / ".beeweave" / "config")
+    (tmp_path / ".beeweave").mkdir()
+    (tmp_path / ".beeweave" / "config").write_text(
+        f'BEEWEAVE_VERSION="{cli.__version__}"\n',
+        encoding="utf-8",
+    )
+    for skill in ("beeweave-ingest", "beeweave-query", "beeweave-update"):
+        _skill(tmp_path / ".claude" / "skills" / skill)
+
+    cli._check_stale()
+
+    assert capsys.readouterr().err == ""
 
 
 def test_portable_skills_include_explicit_global_extras(tmp_path, monkeypatch):
@@ -798,6 +829,7 @@ def test_project_local_skill_summary_lists_wiki_and_workbench(capsys):
     assert "beeweave-query" not in output
     assert "Workbench/project-local skills:" in output
     assert "beeweave-article-writer" in output
+    assert "beeweave-ppt-writer" in output
 
 
 def test_pyproject_exposes_only_bwe_console_script():
@@ -847,6 +879,10 @@ def test_bundled_skill_metadata_uses_beeweave_prefix():
             stale.append(f"{rel}: name is not beeweave-prefixed")
 
     assert stale == []
+
+
+def test_guizang_ppt_skill_is_not_bundled():
+    assert not (ROOT / ".skills" / "workbench" / "guizang-ppt-skill").exists()
 
 
 def test_runtime_sources_do_not_reference_old_skill_names():

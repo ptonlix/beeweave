@@ -17,7 +17,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from beeweave import __version__, profiles, ui, uninstall, update_notice, upgrade
+from beeweave import __version__, external, profiles, ui, uninstall, update_notice, upgrade
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
@@ -73,6 +73,7 @@ LOCAL_WIKI_SKILL_DESCRIPTIONS = {
 WORKBENCH_SKILL_DESCRIPTIONS = {
     "beeweave-article-publisher": "publish workbench drafts and ingest finished articles into the wiki",
     "beeweave-article-writer": "long-form articles, blog posts, essays, and opinion pieces",
+    "beeweave-ppt-writer": "HTML PPT decks and presentation projects using external PPT skills",
     "beeweave-social-writer": "X/Twitter posts, threads, short takes, and social copy",
     "beeweave-url-capture": "download URLs into workbench/inbox/web as raw capture bundles",
     "baoyu-url-to-markdown": "project-local URL extraction dependency for workbench captures",
@@ -588,6 +589,7 @@ WORKBENCH_DIRS = (
     "inbox/rejected",
     "articles/drafts",
     "articles/published",
+    "ppt",
     "library",
 )
 
@@ -767,10 +769,12 @@ def _check_stale() -> None:
         )
         return
 
-    # Even if the version matches, check that ~/.claude/skills has the full set.
+    # Even if the version matches, check that ~/.claude/skills has the portable
+    # global set. Project-local wiki/workbench skills intentionally do not live
+    # in ~/.claude/skills.
     claude_skills_dir = HOME / ".claude" / "skills"
     if claude_skills_dir.is_dir():
-        bundled = set(list_skills())
+        bundled = set(_portable_skills())
         installed = {p.name for p in claude_skills_dir.iterdir() if p.is_dir()}
         missing = bundled - installed
         if missing:
@@ -1036,6 +1040,121 @@ def cmd_ast_extract(args: argparse.Namespace) -> int:
 def cmd_list(args: argparse.Namespace) -> int:
     for name in list_skills():
         print(name)
+    return 0
+
+
+def _external_paths() -> external.ExternalPaths:
+    return external.external_paths(GLOBAL_CONFIG_DIR)
+
+
+def cmd_external_install(args: argparse.Namespace) -> int:
+    paths = _external_paths()
+    source = external.parse_source(args.source)
+    repo_root, commit = external.prepare_source_root(paths, source, ref=args.ref)
+    candidates = external.select_candidates(
+        repo_root,
+        path=args.path,
+        skill=args.skill,
+        all_skills=args.all,
+        tree_path=source.tree_path,
+    )
+    installed = external.install_candidates(
+        paths,
+        source=source,
+        repo_root=repo_root,
+        candidates=candidates,
+        ref=args.ref,
+        commit=commit,
+        link_project=Path(args.link_project).expanduser().resolve() if args.link_project else None,
+        agents=AGENTS,
+    )
+    for name in installed:
+        print(f"installed {name}")
+    return 0
+
+
+def cmd_external_link(args: argparse.Namespace) -> int:
+    paths = _external_paths()
+    result = external.link_external_skill(
+        paths,
+        args.skill_name,
+        Path(args.project).expanduser().resolve(),
+        agents=AGENTS,
+    )
+    for path in result.linked:
+        print(f"linked {path}")
+    for path in result.skipped:
+        print(f"already linked {path}")
+    for path in result.conflicts:
+        print(f"conflict {path}")
+    for path, reason in result.failed:
+        print(f"failed {path}: {reason}")
+    return 1 if result.conflicts or result.failed else 0
+
+
+def cmd_external_list(args: argparse.Namespace) -> int:
+    paths = _external_paths()
+    data = external.read_manifest(paths)
+    skills = data.get("skills", {})
+    if not skills:
+        print("No external skills installed.")
+        print("Install one with: bwe external install <source> --skill <name> --link-project .")
+        return 0
+
+    rows: list[tuple[str, str, str, str, str]] = []
+    for name, record in skills.items():
+        commit = str(record.get("resolved_commit") or "-")
+        short_commit = commit[:12] if commit != "-" else "-"
+        linked = len(record.get("linked_projects", []))
+        rows.append(
+            (
+                name,
+                str(record.get("source", "")),
+                str(record.get("subpath", "") or "."),
+                short_commit,
+                str(linked),
+            )
+        )
+
+    headers = ("Skill", "Source", "Subpath", "Commit", "Project links")
+    widths = [
+        max(len(headers[idx]), *(len(row[idx]) for row in rows))
+        for idx in range(len(headers))
+    ]
+    print("External skills:")
+    print("  " + "  ".join(headers[idx].ljust(widths[idx]) for idx in range(len(headers))))
+    print("  " + "  ".join("-" * widths[idx] for idx in range(len(headers))))
+    for row in rows:
+        print("  " + "  ".join(row[idx].ljust(widths[idx]) for idx in range(len(row))))
+    print()
+    print("Details: bwe external info <skill>")
+    return 0
+
+
+def cmd_external_info(args: argparse.Namespace) -> int:
+    paths = _external_paths()
+    data = external.read_manifest(paths)
+    record = data.get("skills", {}).get(args.skill_name)
+    if record is None:
+        raise RuntimeError(f"external skill is not installed: {args.skill_name}")
+    print(json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_external_update(args: argparse.Namespace) -> int:
+    paths = _external_paths()
+    updated = external.update_external_skill(paths, args.skill_name)
+    for name in updated:
+        print(f"updated {name}")
+    return 0
+
+
+def cmd_external_remove(args: argparse.Namespace) -> int:
+    paths = _external_paths()
+    removed_links = external.remove_external_skill(paths, args.skill_name)
+    print(f"removed {args.skill_name}")
+    for path in removed_links:
+        print(f"removed link {path}")
     return 0
 
 
@@ -1332,6 +1451,37 @@ def build_parser() -> argparse.ArgumentParser:
     ip = sub.add_parser("info", help="show install paths, version, and config")
     ip.set_defaults(func=cmd_info)
 
+    ep = sub.add_parser("external", help="manage user-installed external agent skills")
+    external_sub = ep.add_subparsers(dest="external_command")
+    ei = external_sub.add_parser("install", help="install an external skill from a repository or path")
+    ei.add_argument("source", help="GitHub URL, git URL, owner/repo shorthand, tree URL, or local path")
+    ei.add_argument("--skill", help="skill name to install from a multi-skill source")
+    ei.add_argument("--path", help="repository subpath containing SKILL.md")
+    ei.add_argument("--all", action="store_true", help="install every discovered skill from the source")
+    ei.add_argument("--ref", help="git ref, branch, or tag to checkout")
+    ei.add_argument("--link-project", metavar="PATH", help="also link the installed skill into an existing project")
+    ei.set_defaults(func=cmd_external_install)
+
+    el = external_sub.add_parser("link", help="link an installed external skill into a project")
+    el.add_argument("skill_name", help="installed external skill name")
+    el.add_argument("--project", default=".", help="project directory to link into (default: current directory)")
+    el.set_defaults(func=cmd_external_link)
+
+    exl = external_sub.add_parser("list", help="list installed external skills")
+    exl.set_defaults(func=cmd_external_list)
+
+    einfo = external_sub.add_parser("info", help="show external skill manifest details")
+    einfo.add_argument("skill_name", help="installed external skill name")
+    einfo.set_defaults(func=cmd_external_info)
+
+    eu = external_sub.add_parser("update", help="update one or all installed external skills")
+    eu.add_argument("skill_name", nargs="?", help="installed external skill name (default: all)")
+    eu.set_defaults(func=cmd_external_update)
+
+    er = external_sub.add_parser("remove", help="remove an installed external skill")
+    er.add_argument("skill_name", help="installed external skill name")
+    er.set_defaults(func=cmd_external_remove)
+
     pp = sub.add_parser("profile", help="manage BeeWeave profile config files")
     profile_sub = pp.add_subparsers(dest="profile_command")
     psd = profile_sub.add_parser("set-default", help="copy a named profile to ~/.beeweave/config")
@@ -1513,7 +1663,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     # Warn about stale installs on every command except `setup` (which fixes it)
     # and `info` (which calls _check_stale itself with richer output).
-    if getattr(args, "command", None) not in ("setup", "uninstall", "info", "upgrade", None):
+    if getattr(args, "command", None) not in ("setup", "uninstall", "info", "upgrade", "external", None):
         _check_stale()
     try:
         code = args.func(args)
