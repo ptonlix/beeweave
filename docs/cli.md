@@ -7,6 +7,7 @@ BeeWeave exposes the `bwe` command.
 ```text
 bwe setup             install skills into agents and write config
 bwe profile           manage BeeWeave profile config files
+bwe external          manage user-installed external agent skills
 bwe uninstall         remove BeeWeave skills and config
 bwe upgrade           upgrade BeeWeave and refresh installed skills
 bwe list              list bundled skills
@@ -37,6 +38,8 @@ bwe setup --agents claude,codex
 bwe setup --global-extra beeweave-capture
 bwe setup --profile work
 bwe profile set-default work
+bwe external install https://github.com/op7418/guizang-ppt-skill --skill guizang-ppt-skill --link-project .
+bwe external list
 bwe uninstall --all
 bwe upgrade --check
 bwe upgrade
@@ -60,6 +63,52 @@ overwriting it.
 Use `bwe uninstall --all` to also clean project-local BeeWeave files from
 workspaces referenced by all BeeWeave profile configs. Vault and workbench
 content is preserved.
+
+## External Skills
+
+Use `bwe external` to manage third-party agent skills without vendoring those
+repositories into BeeWeave itself or into runtime `vault/` and `workbench/`
+folders.
+
+External skills live under:
+
+```text
+~/.beeweave/external/
++-- repos/       # cloned source repositories
++-- skills/      # stable skill-name entries
++-- manifest.json
+```
+
+Common commands:
+
+```bash
+bwe external install <source> --skill <name> --link-project .
+bwe external link <skill-name> --project .
+bwe external list
+bwe external info <skill-name>
+bwe external update [skill-name]
+bwe external remove <skill-name>
+```
+
+`<source>` can be a GitHub URL, git URL, `owner/repo` shorthand, GitHub tree
+URL, or local path. Use `--ref` to install from a branch, tag, or commit.
+
+For repositories containing more than one skill, choose exactly what to install:
+
+```bash
+bwe external install https://github.com/op7418/guizang-ppt-skill \
+  --skill guizang-ppt-skill \
+  --link-project .
+
+bwe external install https://github.com/JimLiu/baoyu-skills \
+  --skill baoyu-url-to-markdown
+
+bwe external install https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
+```
+
+BeeWeave does not install every skill from a multi-skill repository unless
+`--all` is explicit. Use `bwe external link <skill-name> --project <path>` when
+you want to link an already installed external skill into another workspace.
 
 ## Upgrade
 

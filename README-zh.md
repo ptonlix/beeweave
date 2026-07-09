@@ -111,10 +111,25 @@ project/
     +-- articles/
     |   +-- drafts/
     |   +-- published/
+    +-- ppt/
     +-- library/
 ```
 
 `workbench/` 用来存放粗糙笔记、网页剪藏、导入素材和草稿。`vault/` 用来存放稳定、可搜索、可链接、可复用的知识。`bwe setup` 会创建这些目录，并放置 `.gitkeep` 占位文件，确保第一次 ingest 前目录结构已经准备好。
+
+外部第三方 skills 由 BeeWeave 管理在项目运行目录之外：
+
+```text
+~/.beeweave/external/
++-- repos/       # 克隆下来的源仓库
++-- skills/      # 按 skill 名称稳定暴露的入口
++-- manifest.json
+```
+
+使用 `bwe external install <source> --skill <name> --link-project .` 安装
+一个外部 skill，并把它链接到当前项目的 Agent skill 目录中。对于包含
+多个 skills 的仓库，请使用 `--skill` 或 `--path` 明确选择；BeeWeave
+不会默认安装整个多 skill 仓库，除非你显式传入 `--all`。
 
 ## 🎯 Skill 安装策略
 
