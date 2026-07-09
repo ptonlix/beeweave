@@ -31,7 +31,7 @@ classifiers = [
   "Topic :: Text Processing :: Markup :: Markdown",
   "Topic :: Utilities",
 ]
-dependencies = ["InquirerPy>=0.3.4"]
+dependencies = ["InquirerPy>=0.3.4", "rich>=13.7"]
 
 [project.optional-dependencies]
 # Higher-fidelity AST extraction (tree-sitter parses real ASTs; regex is the default fallback).

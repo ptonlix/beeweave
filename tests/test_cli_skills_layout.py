@@ -290,6 +290,48 @@ def test_ui_disables_color_when_no_color_is_set(monkeypatch):
     assert "agent-native knowledge workbench" in banner
 
 
+def test_ui_table_plain_fallback_when_no_color(monkeypatch, capsys):
+    monkeypatch.setattr(ui.sys.stdout, "isatty", lambda: True)
+    monkeypatch.setenv("NO_COLOR", "1")
+
+    ui.print_table("External skills", ("Skill", "Source"), [("demo-skill", "https://example.com/demo.git")])
+
+    output = capsys.readouterr().out
+    assert "\033[" not in output
+    assert "External skills" in output
+    assert "Skill" in output
+    assert "Source" in output
+    assert "demo-skill" in output
+    assert "https://example.com/demo.git" in output
+
+
+def test_ui_table_plain_fallback_when_not_tty(monkeypatch, capsys):
+    monkeypatch.setattr(ui.sys.stdout, "isatty", lambda: False)
+    monkeypatch.delenv("NO_COLOR", raising=False)
+
+    ui.print_table("External skills", ("Skill", "Commit"), [("demo-skill", "1234567890ab")])
+
+    output = capsys.readouterr().out
+    assert "\033[" not in output
+    assert "External skills" in output
+    assert "Commit" in output
+    assert "1234567890ab" in output
+
+
+def test_ui_rich_summary_contains_key_values(monkeypatch, capsys):
+    monkeypatch.setattr(ui.sys.stdout, "isatty", lambda: True)
+    monkeypatch.delenv("NO_COLOR", raising=False)
+
+    ui.print_summary_panel("BeeWeave info", [("Version", "1.2.3"), ("Vault", "/vault")])
+
+    output = capsys.readouterr().out
+    assert "BeeWeave info" in output
+    assert "Version" in output
+    assert "1.2.3" in output
+    assert "Vault" in output
+    assert "/vault" in output
+
+
 def test_ui_summary_panel_wraps_long_values(monkeypatch):
     monkeypatch.setattr(ui.sys.stdout, "isatty", lambda: False)
 

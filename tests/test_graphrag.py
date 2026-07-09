@@ -297,6 +297,8 @@ class TestGraphQueryCLI:
     def test_outputs_json(self, simple_vault):
         proc = self._run("graph-query", str(simple_vault), "transformer")
         assert proc.returncode == 0
+        assert "╭" not in proc.stdout
+        assert "\033[" not in proc.stdout
         data = json.loads(proc.stdout)
         assert "candidates" in data
 

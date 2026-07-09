@@ -326,15 +326,23 @@ def _print_project_local_skill_summary() -> None:
         for name, description in LOCAL_WIKI_SKILL_DESCRIPTIONS.items()
         if name not in CORE_PORTABLE_SKILLS and name not in RECOMMENDED_GLOBAL_EXTRA_SKILLS
     }
-    print("  Wiki/project-local skills:")
-    for name, description in local_wiki.items():
-        suffix = "" if name in available else " (not bundled)"
-        print(f"    {name:<28} {description}{suffix}")
+    ui.print_table(
+        "Wiki/project-local skills",
+        ("Skill", "Description", "Status"),
+        [
+            (name, description, "bundled" if name in available else "not bundled")
+            for name, description in local_wiki.items()
+        ],
+    )
     print()
-    print("  Workbench/project-local skills:")
-    for name, description in WORKBENCH_SKILL_DESCRIPTIONS.items():
-        suffix = "" if name in available else " (not bundled)"
-        print(f"    {name:<28} {description}{suffix}")
+    ui.print_table(
+        "Workbench/project-local skills",
+        ("Skill", "Description", "Status"),
+        [
+            (name, description, "bundled" if name in available else "not bundled")
+            for name, description in WORKBENCH_SKILL_DESCRIPTIONS.items()
+        ],
+    )
 
 
 def _choose_global_extra_numbered() -> list[str]:
@@ -1097,8 +1105,8 @@ def cmd_external_list(args: argparse.Namespace) -> int:
     data = external.read_manifest(paths)
     skills = data.get("skills", {})
     if not skills:
-        print("No external skills installed.")
-        print("Install one with: bwe external install <source> --skill <name> --link-project .")
+        ui.print_status("info", "No external skills installed.")
+        ui.print_status("info", "Install one with: bwe external install <source> --skill <name> --link-project .")
         return 0
 
     rows: list[tuple[str, str, str, str, str]] = []
@@ -1116,19 +1124,32 @@ def cmd_external_list(args: argparse.Namespace) -> int:
             )
         )
 
-    headers = ("Skill", "Source", "Subpath", "Commit", "Project links")
-    widths = [
-        max(len(headers[idx]), *(len(row[idx]) for row in rows))
-        for idx in range(len(headers))
-    ]
-    print("External skills:")
-    print("  " + "  ".join(headers[idx].ljust(widths[idx]) for idx in range(len(headers))))
-    print("  " + "  ".join("-" * widths[idx] for idx in range(len(headers))))
-    for row in rows:
-        print("  " + "  ".join(row[idx].ljust(widths[idx]) for idx in range(len(row))))
-    print()
-    print("Details: bwe external info <skill>")
+    ui.print_table(
+        "External skills",
+        ("Skill", "Source", "Subpath", "Commit", "Project links"),
+        rows,
+        caption="Details: bwe external info <skill>",
+    )
     return 0
+
+
+def _external_info_rows(name: str, record: dict[str, object]) -> list[tuple[str, str | int | None]]:
+    linked_projects = record.get("linked_projects", [])
+    if isinstance(linked_projects, list):
+        linked = "\n".join(str(path) for path in linked_projects) if linked_projects else "none"
+    else:
+        linked = str(linked_projects)
+    license_value = record.get("license")
+    return [
+        ("Skill", name),
+        ("Source", str(record.get("source", ""))),
+        ("Subpath", str(record.get("subpath", "") or ".")),
+        ("Install path", str(record.get("install_path", "") or record.get("path", "") or "(unknown)")),
+        ("Commit", str(record.get("resolved_commit", "") or "-")),
+        ("License", str(license_value) if license_value else "(unknown)"),
+        ("Installed at", str(record.get("installed_at", "") or "(unknown)")),
+        ("Linked projects", linked),
+    ]
 
 
 def cmd_external_info(args: argparse.Namespace) -> int:
@@ -1137,7 +1158,7 @@ def cmd_external_info(args: argparse.Namespace) -> int:
     record = data.get("skills", {}).get(args.skill_name)
     if record is None:
         raise RuntimeError(f"external skill is not installed: {args.skill_name}")
-    print(json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True))
+    ui.print_detail_panel("External skill info", _external_info_rows(args.skill_name, record), preserve_values=True)
     return 0
 
 
@@ -1214,21 +1235,24 @@ def cmd_info(args: argparse.Namespace) -> int:
 
 
 def _print_version_check(result: upgrade.VersionCheck) -> None:
-    print(f"BeeWeave {result.current}")
     if result.latest is None:
-        print("Latest   unknown")
-        print("Status   could not check latest version")
+        rows: list[tuple[str, str | int | None]] = [
+            ("Current", result.current),
+            ("Latest", "unknown"),
+            ("Status", "could not check latest version"),
+        ]
         if result.error:
-            print(f"Reason   {result.error}")
+            rows.append(("Reason", result.error))
+        ui.print_detail_panel("BeeWeave upgrade check", rows)
         return
-    print(f"Latest   {result.latest}")
+    rows = [
+        ("Current", result.current),
+        ("Latest", result.latest),
+        ("Status", "update available" if result.status == "update_available" else "up to date"),
+    ]
     if result.status == "update_available":
-        print("Status   update available")
-        print()
-        print("Run:")
-        print("  bwe upgrade")
-    else:
-        print("Status   up to date")
+        rows.append(("Run", "bwe upgrade"))
+    ui.print_detail_panel("BeeWeave upgrade check", rows)
 
 
 def _replay_setup(entry: upgrade.ReplayEntry) -> int:
@@ -1275,23 +1299,26 @@ def cmd_upgrade(args: argparse.Namespace) -> int:
 
     method = upgrade.detect_install_method(package_file=__file__)
     command = upgrade.upgrade_command(method)
-    print(f"BeeWeave {check.current} → {check.latest}")
-    print(f"Installer: {method.kind}")
+    ui.print_detail_panel(
+        "BeeWeave upgrade",
+        [
+            ("Current", check.current),
+            ("Latest", check.latest),
+            ("Installer", method.kind),
+        ],
+    )
 
     if command is None:
-        print()
-        print("BeeWeave does not know how to upgrade this install automatically.")
+        ui.print_status("warning", "BeeWeave does not know how to upgrade this install automatically.")
         if method.detail:
-            print(f"Detected: {method.detail}")
-        print()
-        print("Recommended:")
+            ui.print_status("info", f"Detected: {method.detail}")
+        ui.print_status("info", "Recommended:")
         for line in upgrade.manual_upgrade_hint(method):
             print(f"  {line}")
         return 1
 
     print()
-    print("Running:")
-    print(f"  {' '.join(command)}")
+    ui.print_status("info", f"Running: {' '.join(command)}")
     result = upgrade.run_upgrade_command(command)
     if result.stdout.strip():
         print(result.stdout.strip())
@@ -1301,7 +1328,7 @@ def cmd_upgrade(args: argparse.Namespace) -> int:
         print(f"error: upgrade command failed with exit code {result.returncode}", file=sys.stderr)
         return result.returncode or 1
 
-    print("✅  Package upgrade completed")
+    ui.print_status("success", "Package upgrade completed")
     # The current Python process keeps the already-imported CLI code, but setup
     # replay reads bundled skill files from disk through skills_dir(). For normal
     # uv/pip upgrades those package-data files are replaced in the same location,
@@ -1311,22 +1338,22 @@ def cmd_upgrade(args: argparse.Namespace) -> int:
     readable, detail = _bundled_skills_readable()
     if not readable:
         print()
-        print("Package data is not readable after upgrade; skipping setup replay.")
-        print(f"Reason: {detail}")
-        print("Run: bwe setup")
+        ui.print_status("warning", "Package data is not readable after upgrade; skipping setup replay.")
+        ui.print_status("info", f"Reason: {detail}")
+        ui.print_status("info", "Run: bwe setup")
         return 0
 
     plan = upgrade.replay_plan(GLOBAL_CONFIG_DIR)
     if not plan.entries:
         print()
-        print("No recorded setup replay state found.")
-        print("Run: bwe setup")
+        ui.print_status("warning", "No recorded setup replay state found.")
+        ui.print_status("info", "Run: bwe setup")
         for profile, reason in plan.skipped:
             print(f"Skipped {profile}: {reason}")
         return 0
 
     print()
-    print("Refreshing installed skills from recorded setup profiles...")
+    ui.print_status("info", "Refreshing installed skills from recorded setup profiles...")
     refreshed: list[str] = []
     failed: list[tuple[str, int]] = []
     for entry in plan.entries:

@@ -136,3 +136,65 @@ def test_external_list_uses_labeled_table(monkeypatch, tmp_path, capsys):
     assert "demo-skill" in output
     assert "1234567890ab" in output
     assert "Details: bwe external info <skill>" in output
+
+
+def test_external_list_empty_state_uses_clear_help(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+
+    args = cli.build_parser().parse_args(["external", "list"])
+
+    assert args.func(args) == 0
+    output = capsys.readouterr().out
+    assert "No external skills installed" in output
+    assert "bwe external install <source> --skill <name> --link-project ." in output
+
+
+def test_external_info_uses_readable_detail_view(monkeypatch, tmp_path, capsys):
+    paths = external.external_paths(tmp_path / ".beeweave")
+    external.init_external_storage(paths)
+    manifest = external.read_manifest(paths)
+    manifest["skills"]["demo-skill"] = {
+        "source": "https://github.com/example/demo.git",
+        "source_raw": "example/demo",
+        "repo_dir": str(tmp_path / "repo"),
+        "subpath": "skills/demo-skill",
+        "ref": "main",
+        "resolved_commit": "1234567890abcdef",
+        "install_path": str(paths.skills / "demo-skill"),
+        "license": "MIT",
+        "installed_at": "2026-07-09T00:00:00+00:00",
+        "linked_projects": ["/project/a", "/project/b"],
+    }
+    external.write_manifest(paths, manifest)
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+
+    args = cli.build_parser().parse_args(["external", "info", "demo-skill"])
+
+    assert args.func(args) == 0
+    output = capsys.readouterr().out
+    assert "External skill info" in output
+    assert "Skill:" in output
+    assert "demo-skill" in output
+    assert "Source:" in output
+    assert "https://github.com/example/demo.git" in output
+    assert "Subpath:" in output
+    assert "skills/demo-skill" in output
+    assert "Install path:" in output
+    assert str(paths.skills / "demo-skill") in output
+    assert "Commit:" in output
+    assert "1234567890abcdef" in output
+    assert "License:" in output
+    assert "MIT" in output
+    assert "Installed at:" in output
+    assert "2026-07-09T00:00:00+00:00" in output
+    assert "Linked projects:" in output
+    assert "/project/a" in output
+    assert "/project/b" in output
+
+
+def test_external_info_missing_skill_stays_nonzero(monkeypatch, tmp_path):
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", tmp_path / ".beeweave")
+    args = cli.build_parser().parse_args(["external", "info", "missing-skill"])
+
+    with pytest.raises(RuntimeError, match="external skill is not installed: missing-skill"):
+        args.func(args)

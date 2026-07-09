@@ -31,8 +31,11 @@ pyproject.toml  # Packaging and CLI entrypoint
 - Keep implementation changes scoped to the active request or OpenSpec change.
 - Prefer existing CLI/setup/skill patterns over new abstractions.
 - For terminal interaction in the BeeWeave CLI, route shared presentation
-  through `beeweave/ui.py` instead of adding ad hoc ANSI, prompt, banner, or
-  summary rendering in command handlers.
+  through `beeweave/ui.py` instead of adding ad hoc ANSI, Rich tables, prompts,
+  banners, or summary rendering in command handlers.
+- Rich is the shared rendering layer for human-readable CLI output. Keep all
+  Rich object construction behind `beeweave/ui.py` helpers, and keep plain
+  fallbacks readable.
 - Use the shared UI helpers consistently:
   - `ui.print_setup_banner` for the setup banner.
   - `ui.select_prompt` for interactive profile-style selections.
@@ -45,8 +48,8 @@ pyproject.toml  # Packaging and CLI entrypoint
 - Keep InquirerPy optional. Non-interactive and missing-InquirerPy fallbacks
   must remain deterministic, scriptable, and prompt-free unless the command is
   explicitly unsafe without interactive confirmation.
-- Respect `NO_COLOR` and non-TTY output. Shared UI helpers must disable ANSI in
-  those cases while keeping output readable.
+- Respect `NO_COLOR` and non-TTY output. Shared UI helpers must disable ANSI and
+  avoid Rich-only structure in those cases while keeping output readable.
 - Current CLI UI conventions:
   - `bwe setup` uses the shared banner, profile select, new-profile text input,
     agent/global-skill checkboxes, and setup summary panel.

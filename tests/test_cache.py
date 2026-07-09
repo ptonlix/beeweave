@@ -203,6 +203,8 @@ class TestCacheCLI:
     def test_cache_check_new(self, vault, src_file):
         proc = self._run("cache-check", str(vault), str(src_file))
         assert proc.returncode == 0
+        assert "╭" not in proc.stdout
+        assert "\033[" not in proc.stdout
         data = json.loads(proc.stdout)
         assert str(src_file) in data["new"]
 
@@ -214,6 +216,8 @@ class TestCacheCLI:
     def test_cache_update_then_check_unchanged(self, vault, src_file):
         self._run("cache-update", str(vault), str(src_file))
         proc = self._run("cache-check", str(vault), str(src_file))
+        assert "╭" not in proc.stdout
+        assert "\033[" not in proc.stdout
         data = json.loads(proc.stdout)
         assert str(src_file) in data["unchanged"]
 

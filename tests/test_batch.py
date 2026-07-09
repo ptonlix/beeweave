@@ -247,6 +247,8 @@ class TestBatchPlanCLI:
         (source_dir / "doc.md").write_text("content")
         proc = self._run("batch-plan", str(vault), str(source_dir))
         assert proc.returncode == 0
+        assert "╭" not in proc.stdout
+        assert "\033[" not in proc.stdout
         data = json.loads(proc.stdout)
         assert "batches" in data
 

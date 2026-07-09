@@ -157,6 +157,8 @@ class TestCLI:
             text=True,
         )
         assert proc.returncode == 0
+        assert "╭" not in proc.stdout
+        assert "\033[" not in proc.stdout
         data = json.loads(proc.stdout)
         assert data["stats"]["nodes"] > 0
 
