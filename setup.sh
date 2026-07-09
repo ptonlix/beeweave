@@ -16,7 +16,7 @@
 #        - .claude/skills/        (Claude Code)
 #        - .cursor/skills/        (Cursor)
 #        - .windsurf/skills/      (Windsurf)
-#        - .agents/skills/        (AGENTS.md-aware agents, generic)
+#        - .agents/skills/        (AGENTS.md-aware agents, OpenClaw, generic)
 #        - .kiro/skills/          (Kiro IDE/CLI)
 #      Global (portable skills only: beeweave-update, beeweave-query, beeweave-ingest):
 #        - ~/.claude/skills/      (Claude Code)
@@ -623,7 +623,7 @@ install_agent() {
       install_hermes_portable
       ;;
     openclaw)
-      install_project_skills "$SCRIPT_DIR/.openclaw/skills" ".openclaw/skills/ (OpenClaw, full)"
+      install_project_skills "$SCRIPT_DIR/.agents/skills" ".agents/skills/ (OpenClaw project agent, full)"
       install_global_portable "$HOME/.openclaw/skills" "~/.openclaw/skills/ (OpenClaw managed)"
       ;;
     copilot)

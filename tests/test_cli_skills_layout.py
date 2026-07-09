@@ -377,6 +377,20 @@ def test_install_project_supports_codex_project_skills(tmp_path, monkeypatch):
     assert (tmp_path / ".codex" / "skills" / "baoyu-url-to-markdown" / "SKILL.md").exists()
 
 
+def test_install_project_supports_openclaw_agent_skills_path(tmp_path, monkeypatch):
+    root = tmp_path / ".skills"
+    _skill(root / "wiki" / "beeweave-query")
+    _skill(root / "workbench" / "beeweave-url-capture")
+    monkeypatch.setattr(cli, "skills_dir", lambda: root)
+    monkeypatch.setattr(cli, "bootstrap_dir", lambda: None)
+
+    cli.install_project(tmp_path, mode="copy", agents=["openclaw"])
+
+    assert (tmp_path / ".agents" / "skills" / "beeweave-query" / "SKILL.md").exists()
+    assert (tmp_path / ".agents" / "skills" / "beeweave-url-capture" / "SKILL.md").exists()
+    assert not (tmp_path / ".openclaw" / "skills").exists()
+
+
 def test_install_project_uses_bootstrap_agents_template_and_aliases(tmp_path, monkeypatch):
     root = tmp_path / ".skills"
     boot = tmp_path / "bootstrap-root"
@@ -1002,6 +1016,17 @@ def test_runtime_sources_do_not_reference_old_skill_names():
                 break
 
     assert stale == []
+
+
+def test_setup_sh_uses_openclaw_project_agent_skills_path():
+    text = (ROOT / "setup.sh").read_text(encoding="utf-8")
+    match = re.search(r"(?ms)^\s*openclaw\)\n(?P<body>.*?)^\s*;;", text)
+
+    assert match is not None
+    body = match.group("body")
+    assert 'install_project_skills "$SCRIPT_DIR/.agents/skills"' in body
+    assert 'install_project_skills "$SCRIPT_DIR/.openclaw/skills"' not in body
+    assert 'install_global_portable "$HOME/.openclaw/skills"' in body
 
 
 def test_repository_root_has_single_development_agent_context():

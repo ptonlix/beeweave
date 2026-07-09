@@ -245,7 +245,7 @@ AGENTS: dict[str, dict[str, str | None]] = {
     },
     "openclaw": {
         "label": "OpenClaw",
-        "project": ".openclaw/skills",
+        "project": ".agents/skills",
         "global": ".openclaw/skills",
     },
     "copilot": {
