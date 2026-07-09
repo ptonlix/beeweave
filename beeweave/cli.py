@@ -74,6 +74,8 @@ WORKBENCH_SKILL_DESCRIPTIONS = {
     "beeweave-article-publisher": "publish workbench drafts and ingest finished articles into the wiki",
     "beeweave-article-writer": "long-form articles, blog posts, essays, and opinion pieces",
     "beeweave-social-writer": "X/Twitter posts, threads, short takes, and social copy",
+    "beeweave-url-capture": "download URLs into workbench/inbox/web as raw capture bundles",
+    "baoyu-url-to-markdown": "project-local URL extraction dependency for workbench captures",
 }
 
 

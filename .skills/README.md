@@ -68,6 +68,8 @@ Workbench/project-local skills:
   beeweave-article-writer — long-form articles, blog posts, essays, and opinion pieces
   beeweave-article-publisher — publish drafts and ingest finished pieces into the wiki
   beeweave-social-writer  — X/Twitter posts, threads, short takes, and social copy
+  beeweave-url-capture  — download URLs into workbench/inbox/web as raw capture bundles
+  baoyu-url-to-markdown — project-local URL extraction dependency for URL capture
 ```
 
 After global skill selection, setup asks which agents to install for.
@@ -125,6 +127,8 @@ project-locally with the full skill set, not globally.
 | `beeweave-article-writer` | Long-form articles, blog posts, essays, and opinion pieces |
 | `beeweave-article-publisher` | Move finished drafts to `workbench/articles/published/`, mark them published, and ingest them into the wiki |
 | `beeweave-social-writer` | X/Twitter posts, threads, short takes, and social copy |
+| `beeweave-url-capture` | Download a user-provided URL into `workbench/inbox/web/` as a self-contained capture bundle, then hand off to `/beeweave-ingest workbench/inbox` |
+| `baoyu-url-to-markdown` | Bundled project-local dependency used by `beeweave-url-capture` for browser-rendered URL extraction; not installed as a default global skill |
 
 ## Why Most Skills Stay Local
 

@@ -18,11 +18,19 @@ def test_list_skills_supports_grouped_layout(tmp_path, monkeypatch):
     root = tmp_path / ".skills"
     _skill(root / "wiki" / "beeweave-query")
     _skill(root / "wiki" / "beeweave-update")
+    _skill(root / "workbench" / "baoyu-url-to-markdown")
     _skill(root / "workbench" / "beeweave-article-writer")
+    _skill(root / "workbench" / "beeweave-url-capture")
 
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
 
-    assert cli.list_skills() == ["beeweave-article-writer", "beeweave-query", "beeweave-update"]
+    assert cli.list_skills() == [
+        "baoyu-url-to-markdown",
+        "beeweave-article-writer",
+        "beeweave-query",
+        "beeweave-update",
+        "beeweave-url-capture",
+    ]
 
 
 def test_install_skills_flattens_grouped_layout(tmp_path, monkeypatch):
@@ -308,7 +316,9 @@ def test_install_project_only_selected_agent_dirs(tmp_path, monkeypatch):
 def test_install_project_supports_codex_project_skills(tmp_path, monkeypatch):
     root = tmp_path / ".skills"
     _skill(root / "wiki" / "beeweave-query")
+    _skill(root / "workbench" / "baoyu-url-to-markdown")
     _skill(root / "workbench" / "beeweave-article-writer")
+    _skill(root / "workbench" / "beeweave-url-capture")
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
     monkeypatch.setattr(cli, "bootstrap_dir", lambda: None)
 
@@ -316,6 +326,8 @@ def test_install_project_supports_codex_project_skills(tmp_path, monkeypatch):
 
     assert (tmp_path / ".codex" / "skills" / "beeweave-query" / "SKILL.md").exists()
     assert (tmp_path / ".codex" / "skills" / "beeweave-article-writer" / "SKILL.md").exists()
+    assert (tmp_path / ".codex" / "skills" / "beeweave-url-capture" / "SKILL.md").exists()
+    assert (tmp_path / ".codex" / "skills" / "baoyu-url-to-markdown" / "SKILL.md").exists()
 
 
 def test_install_project_uses_bootstrap_agents_template_and_aliases(tmp_path, monkeypatch):
@@ -498,7 +510,9 @@ def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):
     _skill(root / "wiki" / "beeweave-ingest")
     _skill(root / "wiki" / "beeweave-query")
     _skill(root / "wiki" / "beeweave-update")
+    _skill(root / "workbench" / "baoyu-url-to-markdown")
     _skill(root / "workbench" / "beeweave-article-writer")
+    _skill(root / "workbench" / "beeweave-url-capture")
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
 
     assert cli._portable_skills() == ("beeweave-update", "beeweave-query", "beeweave-ingest")
@@ -510,6 +524,8 @@ def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):
     assert (target / "beeweave-query" / "SKILL.md").exists()
     assert (target / "beeweave-update" / "SKILL.md").exists()
     assert not (target / "beeweave-article-writer").exists()
+    assert not (target / "beeweave-url-capture").exists()
+    assert not (target / "baoyu-url-to-markdown").exists()
 
 
 def test_portable_skills_include_explicit_global_extras(tmp_path, monkeypatch):
@@ -815,6 +831,7 @@ def test_project_cli_references_in_skills_use_bwe():
 
 
 def test_bundled_skill_metadata_uses_beeweave_prefix():
+    vendored_external_skills = {"baoyu-url-to-markdown"}
     stale = []
     for skill_file in sorted((ROOT / ".skills").glob("*/*/SKILL.md")):
         text = skill_file.read_text(encoding="utf-8")
@@ -826,7 +843,7 @@ def test_bundled_skill_metadata_uses_beeweave_prefix():
         name = match.group("name")
         if name != skill_file.parent.name:
             stale.append(f"{rel}: name {name} != directory {skill_file.parent.name}")
-        if not name.startswith("beeweave-"):
+        if not name.startswith("beeweave-") and name not in vendored_external_skills:
             stale.append(f"{rel}: name is not beeweave-prefixed")
 
     assert stale == []
