@@ -100,6 +100,21 @@ workbench/inbox/web/YYYY-MM-DD-web-<host>-<slug>/
 同级依赖技能。运行时不要依赖 BeeWeave 源码树路径；应关注当前 Agent 能否在已
 安装的 Workbench skills 中找到 `baoyu-url-to-markdown`。
 
+在 `beeweave-url-capture` 流程中，`baoyu-url-to-markdown` 是内部提取器依赖，
+不是面向用户的独立保存工作流。因此 BeeWeave 已经接管输出目录、主文件命名和
+媒体下载策略：
+
+- 不执行 `baoyu-url-to-markdown` 的 `Preferences (EXTEND.md)` 或
+  `First-Time Setup` 流程。
+- 不因缺少 `EXTEND.md` 而向用户询问媒体处理、默认输出目录或偏好保存位置。
+- 不创建或修改 `.baoyu-skills/baoyu-url-to-markdown/EXTEND.md`，除非用户明确
+  要求配置 baoyu skill 本身。
+- BeeWeave 选定的 CLI 参数优先于依赖 skill 的偏好默认值：固定传入
+  `--output "<capture-dir>/index.md"`，并且只有用户明确要求本地化媒体时才追加
+  `--download-media --media-dir "<capture-dir>"`。
+- 读取依赖 skill 文档时，只采用 CLI setup、运行时依赖、可用参数、adapter 和
+  quality gate 等执行相关说明；跳过偏好初始化说明。
+
 执行步骤：
 
 1. 在当前 Agent 的已安装 skills 中查找 `baoyu-url-to-markdown`：
