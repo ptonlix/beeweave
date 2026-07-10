@@ -414,6 +414,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#openclaw-symlink-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenClaw Symlink Setup
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -541,6 +550,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#openclaw-symlink-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenClaw Symlink Setup
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -591,6 +609,38 @@ without trapping context inside one chat or one tool.</p>
 <li>Project-local install: full BeeWeave skill set for the chosen workspace.</li>
 <li>Runtime data: created in the workspace, not in this repository.</li>
 </ul>
+<h2 id="openclaw-symlink-setup">OpenClaw Symlink Setup<a class="headerlink" href="#openclaw-symlink-setup" title="Permanent link">&para;</a></h2>
+<p>BeeWeave installs OpenClaw project-local skills into <code>.agents/skills</code>. This is
+OpenClaw's documented project agent skills root. The default BeeWeave setup uses
+symlinks, so those entries may point to BeeWeave's installed package data
+directory.</p>
+<p>OpenClaw validates symlink targets for project-agent skill roots. If OpenClaw
+does not load BeeWeave skills after setup, choose one of these paths:</p>
+<ul>
+<li>Run <code>bwe setup --agents openclaw --copy</code> to copy skills instead of symlinking.</li>
+<li>Keep symlinks and add BeeWeave's installed skills data directory to
+  <code>skills.load.allowSymlinkTargets</code> in <code>openclaw.json</code>.</li>
+</ul>
+<p>You can ask OpenClaw to resolve the target path and update its own config with
+this prompt:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Please fix BeeWeave skills not loading in OpenClaw.
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Background:
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>- BeeWeave installed OpenClaw project-local skills into this project&#39;s `.agents/skills`.
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>- These skills may be symlinks.
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>- OpenClaw needs `skills.load.allowSymlinkTargets` in `openclaw.json` to allow symlink targets outside the project skill root.
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>Please:
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>1. Inspect this project&#39;s `.agents/skills` BeeWeave skill symlinks.
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>2. Resolve their real target paths.
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>3. Find the shared BeeWeave skills data directory.
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>4. Update `openclaw.json` by adding that directory to `skills.load.allowSymlinkTargets`.
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>Requirements:
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>- Preserve all existing OpenClaw config.
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>- If `skills.load.allowSymlinkTargets` already exists, append only missing paths.
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>- Show the path you plan to add before changing the file.
+</code></pre></div>
 <p><img alt="Agent install targets" src="../assets/agent-install-targets.png" /></p>
 
 

@@ -414,6 +414,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#openclaw" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenClaw 软链接配置
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -541,6 +550,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#openclaw" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenClaw 软链接配置
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -587,6 +605,36 @@
 <li>项目本地安装：为选中的工作区安装完整 BeeWeave skill 集。</li>
 <li>运行时数据：在用户工作区创建，不在本仓库创建。</li>
 </ul>
+<h2 id="openclaw">OpenClaw 软链接配置<a class="headerlink" href="#openclaw" title="Permanent link">&para;</a></h2>
+<p>BeeWeave 会把 OpenClaw 项目本地 skills 安装到 <code>.agents/skills</code>，这与
+OpenClaw 官方的 project agent skills 根目录一致。BeeWeave 默认使用软链接，
+所以这些目录可能会指向 BeeWeave 安装包里的 skills 数据目录。</p>
+<p>OpenClaw 会校验 project-agent skill roots 下软链接的真实目标路径。如果 setup
+之后 OpenClaw 没有加载 BeeWeave skills，可以选择其中一种方式：</p>
+<ul>
+<li>运行 <code>bwe setup --agents openclaw --copy</code>，复制 skills，避免软链接限制。</li>
+<li>保留软链接，并在 <code>openclaw.json</code> 的 <code>skills.load.allowSymlinkTargets</code>
+  中加入 BeeWeave 已安装的 skills 数据目录。</li>
+</ul>
+<p>可以把下面这段 Prompt 复制给 OpenClaw，让它在当前项目中解析真实路径并更新配置：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>请帮我修复 BeeWeave skills 在 OpenClaw 中无法加载的问题。
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>背景：
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>- BeeWeave 已经把 OpenClaw 项目本地 skills 安装到当前项目的 `.agents/skills`。
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>- 这些 skills 可能是 symlink。
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>- OpenClaw 需要在 `openclaw.json` 的 `skills.load.allowSymlinkTargets` 中允许项目 skill 根目录之外的 symlink 目标。
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>请你执行：
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>1. 检查当前项目 `.agents/skills` 下的 BeeWeave skill symlink。
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>2. 解析这些 symlink 的真实目标路径。
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>3. 找到共同的 BeeWeave skills 数据目录。
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>4. 更新 `openclaw.json`，把该目录加入 `skills.load.allowSymlinkTargets`。
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>要求：
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>- 保留所有已有 OpenClaw 配置。
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>- 如果已有 `skills.load.allowSymlinkTargets`，只追加缺失路径。
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>- 修改文件前，先展示你准备加入的路径。
+</code></pre></div>
 <p><img alt="Agent 安装目标" src="../../assets/agent-install-targets.png" /></p>
 
 
