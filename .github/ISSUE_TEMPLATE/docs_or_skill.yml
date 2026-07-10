@@ -1,0 +1,60 @@
+name: 文档 / Skill 说明问题
+description: 报告文档、AGENTS 规则、skill 说明或示例中的错误、缺失或歧义。
+title: "[Docs]: "
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: 文档类型
+      options:
+        - User docs
+        - 中文文档
+        - AGENTS / bootstrap instructions
+        - Skill documentation
+        - OpenSpec artifacts
+        - README / contributor docs
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: 位置
+      description: 文件路径、页面链接、章节名或 skill 名称。
+      placeholder: .skills/workbench/beeweave-url-capture/SKILL.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: 问题说明
+      description: 哪段内容不准确、不完整、过时或容易误解？
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望改法
+      description: 你希望文档如何表述？如果可以，请给出建议文本。
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 相关上下文
+      description: 相关 issue、PR、命令输出或实际遇到的 Agent 行为。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前检查
+      options:
+        - label: 我已确认问题发生在当前仓库文档或 skill 说明中。
+          required: true
+
