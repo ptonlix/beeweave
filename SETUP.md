@@ -22,6 +22,45 @@ the full skill set. Project-local setup also generates `AGENTS.md`, `CLAUDE.md`,
 files pointing to `AGENTS.md`. Use `--copy` to copy skill files instead of symlinking. Run
 `bwe info` to see resolved paths.
 
+### OpenClaw symlink note
+
+OpenClaw project-local skills are installed into `.agents/skills`, matching
+OpenClaw's project agent skills root. BeeWeave uses symlinks by default, so a
+packaged install may create `.agents/skills/*` links that point back to
+BeeWeave's installed package data directory.
+
+OpenClaw validates symlink targets for workspace and project-agent skill roots.
+If OpenClaw does not load BeeWeave skills after setup, use one of these options:
+
+1. Copy the skills instead of symlinking:
+
+   ```bash
+   bwe setup --agents openclaw --copy
+   ```
+
+2. Keep symlinks and ask OpenClaw to allow the BeeWeave skill target directory.
+   Copy this prompt into OpenClaw from the BeeWeave project:
+
+   ```text
+   Please fix BeeWeave skills not loading in OpenClaw.
+
+   Background:
+   - BeeWeave installed OpenClaw project-local skills into this project's `.agents/skills`.
+   - These skills may be symlinks.
+   - OpenClaw needs `skills.load.allowSymlinkTargets` in `openclaw.json` to allow symlink targets outside the project skill root.
+
+   Please:
+   1. Inspect this project's `.agents/skills` BeeWeave skill symlinks.
+   2. Resolve their real target paths.
+   3. Find the shared BeeWeave skills data directory.
+   4. Update `openclaw.json` by adding that directory to `skills.load.allowSymlinkTargets`.
+
+   Requirements:
+   - Preserve all existing OpenClaw config.
+   - If `skills.load.allowSymlinkTargets` already exists, append only missing paths.
+   - Show the path you plan to add before changing the file.
+   ```
+
 To uninstall the packaged CLI wiring, run `bwe uninstall --yes`. This removes
 BeeWeave-managed skills from global agent directories, removes project-local
 BeeWeave skills/bootstrap files in the current project, and deletes
