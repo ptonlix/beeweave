@@ -38,10 +38,18 @@ Workbench/project-local skills 包括：
 - `beeweave-ppt-writer`：在 `workbench/ppt/` 下创建 HTML PPT 项目，需要时
   可配合 `guizang-ppt-skill` 等外部 PPT skills 使用。
 - `beeweave-social-writer`：起草 X/Twitter 帖子、thread、短观点和社交文案。
+- `beeweave-writing-style-initializer`：初始化 `workbench/writing/style/`
+  下的写作风格资产模板。
+- `beeweave-writing-style-learner`：从历史文章、写作 trace、用户改稿、AI
+  按用户指令改稿和明确反馈中提炼候选写作风格规则。
+- `beeweave-writing-skill-evolver`：审阅候选规则，按路由层、指令层、资源层
+  分类，验证后激活、拒绝、回滚或压缩写作风格资产。
 - `beeweave-url-capture`：把 URL 下载到 `workbench/inbox/web/`，形成自包含的
   原始捕获包，然后交给 `/beeweave-ingest workbench/inbox`。
 - `baoyu-url-to-markdown`：`beeweave-url-capture` 使用的项目本地 URL 抽取依赖；
   它不会作为默认全局 skill 安装。
+
+自进化写作的完整说明已拆到单独页面：见[自进化写作工作流](self-evolving-writing.md)。
 
 ## 外部 Skills
 

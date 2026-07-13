@@ -75,6 +75,9 @@ WORKBENCH_SKILL_DESCRIPTIONS = {
     "beeweave-article-writer": "long-form articles, blog posts, essays, and opinion pieces",
     "beeweave-ppt-writer": "HTML PPT decks and presentation projects using external PPT skills",
     "beeweave-social-writer": "X/Twitter posts, threads, short takes, and social copy",
+    "beeweave-writing-skill-evolver": "review, validate, activate, reject, and compact learned writing rules",
+    "beeweave-writing-style-initializer": "initialize Workbench writing style asset templates",
+    "beeweave-writing-style-learner": "extract pending writing style rules from articles, traces, diffs, and feedback",
     "beeweave-url-capture": "download URLs into workbench/inbox/web as raw capture bundles",
     "baoyu-url-to-markdown": "project-local URL extraction dependency for workbench captures",
 }
@@ -597,6 +600,9 @@ WORKBENCH_DIRS = (
     "inbox/rejected",
     "articles/drafts",
     "articles/published",
+    "writing/style",
+    "writing/traces",
+    "writing/eval",
     "ppt",
     "library",
 )

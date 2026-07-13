@@ -24,6 +24,26 @@ description: |
 
 如果目标配置文件不存在、没有配置 `BEEWEAVE_WORKBENCH_PATH`，或目标 drafts 目录无法创建，先向用户说明无法找到 BeeWeave workbench，不要猜测其它路径，也不要把短内容写进 vault。
 
+### 共享写作风格资产
+
+定位到 `BEEWEAVE_WORKBENCH_PATH` 后，写作前读取用户 Workbench 中的共享风格资产：
+
+```text
+$BEEWEAVE_WORKBENCH_PATH/writing/style/
+├── author_profile.md
+├── active_style_rules.md
+├── anti_patterns.md
+├── article_examples.md
+├── social_examples.md
+├── pending_rules.md
+├── rejected_rules.md
+└── evolution_log.md
+```
+
+如果 `writing/style/` 或关键风格文件不存在，不要在 writer 中创建完整模板。先提示用户建议使用 `beeweave-writing-style-initializer` 初始化写作风格资产；如果用户要求继续当前写作任务，则使用本 skill 内置默认规则继续写作，并在最终回复中标记“未加载用户风格资产”。writer 只负责写作、保存草稿和记录 trace，不负责首次风格初始化或历史文章学习。
+
+生成社交短内容时只加载与 `social`、`all` 相关的 active rules、anti-patterns 和 social examples，同时保留本 skill 的平台格式、长度、钩子和质检规则。`pending_rules.md` 只用于感知可能的学习方向，不能当作生效规则。`rejected_rules.md` 用于避免重复采纳已拒绝风格。不要因为缺少风格资产阻断草稿交付。
+
 ### 文件命名规则
 
 统一使用：
@@ -37,14 +57,15 @@ YYYY-MM-DD-social-<platform-or-format>-<topic-slug>.md
 - `<platform-or-format>` 使用 `x`、`thread`、`wechat-moments`、`short-post` 等短标识
 - `<topic-slug>` 用 3-6 个英文小写词或拼音词，采用 kebab-case
 - 如果主题很难转成英文或拼音，可以使用简短中文主题，但仍保留日期、`social` 和格式前缀
-- 同一天同主题出现重名时，在文件名末尾追加 `-v2`、`-v3`
+- 同一写作任务的后续改稿默认更新当前工作稿，不创建 `-v2`、`-v3`、`-final` 文件
+- 只有遇到无关任务的文件名冲突时，才在文件名末尾追加 `-2`、`-3`
 
 示例：
 
 ```text
 2026-07-06-social-x-agent-workflow.md
 2026-07-06-social-thread-ai-content-flywheel.md
-2026-07-06-social-short-post-创作工作流-v2.md
+2026-07-06-social-short-post-创作工作流-2.md
 ```
 
 ### 草稿文件格式
@@ -67,6 +88,40 @@ tags:
 文件名仍只使用 `YYYY-MM-DD` 方便排序；frontmatter 的 `created` 和 `updated` 必须使用当前本地时区的 ISO-8601 秒级时间戳，例如 `2026-07-08T16:51:10+08:00`。创建新草稿时二者通常相同；改写已有草稿时保留原 `created`，只更新 `updated`。
 
 正文放最终可发布版本。多个候选版本可以用 `## 版本 A`、`## 版本 B` 分隔。质检报告放在正文后，用 `## 推特质检报告` 或 `## 质检报告` 分隔。最终回复用户时，只需要说明已保存的文件路径、推荐发布版本和是否通过质检，不要把所有候选完整贴一遍，除非用户要求。
+
+### 单一工作稿与 trace
+
+同一条社交内容或同一个 thread 默认只有一个当前工作稿，也就是 `draft_path`。用户要求继续改、润色、压缩、换钩子、改成 thread 或按反馈改时，优先更新这个工作稿并维护 frontmatter 的 `updated`，不要默认在 `articles/drafts/` 里制造多个完整版本文件。版本历史写入 trace。
+
+每次保存或改写社交短内容时，在 `$BEEWEAVE_WORKBENCH_PATH/writing/traces/` 下创建或更新 trace bundle：
+
+```text
+writing/traces/YYYY-MM-DD-social-<topic-slug>/
+├── trace.md
+└── trace.json
+```
+
+`trace.json` 至少记录：
+
+- `task_type: social`
+- 用户需求摘要、平台或格式、素材引用
+- `draft_path`、`output_paths`、`current_version`
+- `skill_name: beeweave-social-writer`
+- `skill_source_path` 或版本信息
+- `created_at`、`updated_at`
+- `learning_status`
+- 有序 `revision_events`
+
+`revision_events` 用来记录：
+
+- 初稿，`action: initial_draft`，`learning_signal: observed`
+- 用户指令驱动的 AI 改稿，`action: revise_from_user_instruction`，记录原始指令和 diff 摘要，`learning_signal: strong`
+- 用户提供或标记的手动改稿，`action: manual_revision_reference`，记录文件路径或摘要
+- 用户确认终稿、发布或采纳，`action: mark_final` 或 `published`，记录 `final_version` 和相关路径
+
+trace 默认只记录路径、摘要、diff summary 和学习状态，不复制完整正文。只有用户明确要求“保存完整过程快照”“保留这个版本”“把初稿全文纳入 trace”或把某版标记为学习样本时，才在 trace bundle 的 `snapshots/` 子目录保存完整正文，并在 trace 里标记 `user_requested_full_snapshot: true` 或 `learning_sample: true`。这些快照不能写到 `articles/drafts/` 当作默认版本文件。
+
+如果 trace 目录或 trace 文件写入失败，但社交短内容草稿已经成功保存，必须把草稿路径交付给用户，并清楚说明 trace 记录失败。只有无法定位 Workbench 或无法创建 drafts 目录时，才按上面的工作区定位规则停止。
 
 ## 核心价值观
 
