@@ -138,6 +138,10 @@ project/
     +-- articles/
     |   +-- drafts/
     |   +-- published/
+    +-- writing/
+    |   +-- style/
+    |   +-- traces/
+    |   +-- eval/
     +-- ppt/
     +-- library/
 ```

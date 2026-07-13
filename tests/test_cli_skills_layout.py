@@ -85,8 +85,26 @@ def test_project_layout_initializers_create_fixed_skeleton(tmp_path):
     assert (workbench / "inbox" / "web").is_dir()
     assert (workbench / "inbox" / "archived").is_dir()
     assert (workbench / "inbox" / "rejected").is_dir()
+    assert (workbench / "writing" / "style").is_dir()
+    assert (workbench / "writing" / "traces").is_dir()
+    assert (workbench / "writing" / "eval").is_dir()
     assert (workbench / "ppt").is_dir()
     assert not (workbench / "inbox" / "_archived").exists()
+
+
+def test_workbench_layout_initialization_is_idempotent(tmp_path):
+    workbench = tmp_path / "workbench"
+    existing = workbench / "writing" / "style" / "author_profile.md"
+    existing.parent.mkdir(parents=True)
+    existing.write_text("# 用户画像\n\n已有内容\n", encoding="utf-8")
+
+    cli.init_workbench_layout(workbench)
+    cli.init_workbench_layout(workbench)
+
+    assert existing.read_text(encoding="utf-8") == "# 用户画像\n\n已有内容\n"
+    for rel in ("writing/style", "writing/traces", "writing/eval"):
+        assert (workbench / rel).is_dir()
+        assert (workbench / rel / ".gitkeep").exists()
 
 
 def test_readme_runtime_layout_lists_generated_directories():
@@ -365,6 +383,9 @@ def test_install_project_supports_codex_project_skills(tmp_path, monkeypatch):
     _skill(root / "workbench" / "beeweave-article-writer")
     _skill(root / "workbench" / "beeweave-ppt-writer")
     _skill(root / "workbench" / "beeweave-url-capture")
+    _skill(root / "workbench" / "beeweave-writing-skill-evolver")
+    _skill(root / "workbench" / "beeweave-writing-style-initializer")
+    _skill(root / "workbench" / "beeweave-writing-style-learner")
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
     monkeypatch.setattr(cli, "bootstrap_dir", lambda: None)
 
@@ -374,6 +395,9 @@ def test_install_project_supports_codex_project_skills(tmp_path, monkeypatch):
     assert (tmp_path / ".codex" / "skills" / "beeweave-article-writer" / "SKILL.md").exists()
     assert (tmp_path / ".codex" / "skills" / "beeweave-ppt-writer" / "SKILL.md").exists()
     assert (tmp_path / ".codex" / "skills" / "beeweave-url-capture" / "SKILL.md").exists()
+    assert (tmp_path / ".codex" / "skills" / "beeweave-writing-skill-evolver" / "SKILL.md").exists()
+    assert (tmp_path / ".codex" / "skills" / "beeweave-writing-style-initializer" / "SKILL.md").exists()
+    assert (tmp_path / ".codex" / "skills" / "beeweave-writing-style-learner" / "SKILL.md").exists()
     assert (tmp_path / ".codex" / "skills" / "baoyu-url-to-markdown" / "SKILL.md").exists()
 
 
@@ -575,6 +599,9 @@ def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):
     _skill(root / "workbench" / "beeweave-article-writer")
     _skill(root / "workbench" / "beeweave-ppt-writer")
     _skill(root / "workbench" / "beeweave-url-capture")
+    _skill(root / "workbench" / "beeweave-writing-skill-evolver")
+    _skill(root / "workbench" / "beeweave-writing-style-initializer")
+    _skill(root / "workbench" / "beeweave-writing-style-learner")
     monkeypatch.setattr(cli, "skills_dir", lambda: root)
 
     assert cli._portable_skills() == ("beeweave-update", "beeweave-query", "beeweave-ingest")
@@ -588,6 +615,9 @@ def test_portable_skills_include_ingest_query_and_update(tmp_path, monkeypatch):
     assert not (target / "beeweave-article-writer").exists()
     assert not (target / "beeweave-ppt-writer").exists()
     assert not (target / "beeweave-url-capture").exists()
+    assert not (target / "beeweave-writing-skill-evolver").exists()
+    assert not (target / "beeweave-writing-style-initializer").exists()
+    assert not (target / "beeweave-writing-style-learner").exists()
     assert not (target / "baoyu-url-to-markdown").exists()
 
 

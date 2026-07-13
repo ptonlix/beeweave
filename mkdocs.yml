@@ -46,7 +46,9 @@ plugins:
             - 架构: architecture.md
             - 数据飞轮: flywheel.md
             - Agent: agents.md
-            - 技能: skills.md
+            - 技能:
+                - 技能总览: skills.md
+                - 自进化写作工作流: self-evolving-writing.md
             - CLI: cli.md
             - 开发: development.md
 

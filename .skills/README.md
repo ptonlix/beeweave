@@ -69,6 +69,9 @@ Workbench/project-local skills:
   beeweave-article-publisher — publish drafts and ingest finished pieces into the wiki
   beeweave-ppt-writer  — HTML PPT decks and presentation projects
   beeweave-social-writer  — X/Twitter posts, threads, short takes, and social copy
+  beeweave-writing-style-initializer — initialize writing style asset templates
+  beeweave-writing-style-learner — extract pending writing style rules from traces, diffs, and feedback
+  beeweave-writing-skill-evolver — validate, activate, reject, and compact learned writing rules
   beeweave-url-capture  — download URLs into workbench/inbox/web as raw capture bundles
   baoyu-url-to-markdown — project-local URL extraction dependency for URL capture
 ```
@@ -129,8 +132,24 @@ project-locally with the full skill set, not globally.
 | `beeweave-article-publisher` | Move finished drafts to `workbench/articles/published/`, mark them published, and ingest them into the wiki |
 | `beeweave-ppt-writer` | Create HTML PPT decks under `workbench/ppt/`, using `guizang-ppt-skill` installed on demand through `bwe external` |
 | `beeweave-social-writer` | X/Twitter posts, threads, short takes, and social copy |
+| `beeweave-writing-style-initializer` | Initialize Workbench writing style asset templates under `workbench/writing/style/` |
+| `beeweave-writing-style-learner` | Learn candidate writing style rules from historical articles, trace bundles, user-directed AI revisions, manual edits, and explicit feedback |
+| `beeweave-writing-skill-evolver` | Review pending writing rules, assign route/instruction/resource layers, validate, activate, reject, roll back, and compact style assets |
 | `beeweave-url-capture` | Download a user-provided URL into `workbench/inbox/web/` as a self-contained capture bundle, then hand off to `/beeweave-ingest workbench/inbox` |
 | `baoyu-url-to-markdown` | Bundled project-local dependency used by `beeweave-url-capture` for browser-rendered URL extraction; not installed as a default global skill |
+
+The article and social writers create drafts and writing traces. The learner
+extracts pending rules from those traces and from user edits. The evolver is the
+only writing skill that should activate, reject, or compact learned rules, and
+it requires evidence plus validation or explicit user approval before changing
+active style assets or source skill instructions.
+
+Writing style initialization templates live in
+`beeweave-writing-style-initializer/references/`. Article and social writers do
+not own those templates; when style assets are missing they prompt the user to
+initialize them with the initializer, then continue with built-in defaults if
+the user wants to keep writing. Real user style assets are created under the
+user's Workbench at `workbench/writing/`.
 
 ## External Skills
 

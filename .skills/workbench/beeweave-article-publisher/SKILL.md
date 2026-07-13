@@ -8,11 +8,12 @@ description: |
 
 这个 skill 负责把一篇已经完成的创作草稿变成已发布作品，并把高信号版本内化到 wiki。
 
-发布不是重写文章。除非用户明确要求修改正文，只做三件事：
+发布不是重写文章。除非用户明确要求修改正文，只做四件事：
 
 1. 定位唯一的草稿文件
 2. 移动到 `articles/published/` 并更新 frontmatter 状态
-3. 用已发布文件作为 source 触发 `beeweave-ingest` skill 流程
+3. 更新对应写作 trace 的发布元数据
+4. 用已发布文件作为 source 触发 `beeweave-ingest` skill 流程
 
 ## 配置解析
 
@@ -84,6 +85,61 @@ $BEEWEAVE_WORKBENCH_PATH/articles/published/
 
 保留正文、质检报告、已有 `created`、`type`、`format`、`tags`、`sources` 等字段。不要把 `draft` 目录中的其它文件一起移动，不要使用通配符或递归移动。
 
+## Trace 发布元数据
+
+发布成功后，尝试更新对应写作 trace。trace 位于：
+
+```text
+$BEEWEAVE_WORKBENCH_PATH/writing/traces/
+```
+
+匹配规则：
+
+1. 优先查找 `trace.json` 中 `draft_path` 等于原草稿路径的 trace。
+2. 如果未命中，再查找 `output_paths` 或 `revision_events[].draft_path` 中包含原草稿路径的 trace。
+3. 如果仍未命中，不创建新的基础 trace，不阻断发布和 wiki ingest，在最终回复中说明“未找到对应写作 trace”。
+4. 如果命中多个 trace，选择 `updated_at` 或 `created_at` 最新的一个，并在最终回复中说明选择依据。
+
+命中 trace 后更新 `trace.json`：
+
+```json
+{
+  "status": "published",
+  "final_version": "vN",
+  "published_path": "$BEEWEAVE_WORKBENCH_PATH/articles/published/...",
+  "cleanup": {
+    "retained_snapshots": [],
+    "removed_snapshots": []
+  }
+}
+```
+
+同时向 `revision_events` 追加发布事件：
+
+```json
+{
+  "version": "vN",
+  "actor": "publisher",
+  "action": "published",
+  "summary": "Moved current working draft to articles/published and marked it published.",
+  "draft_path": "<original draft path>",
+  "published_path": "<published file path>",
+  "learning_signal": "accepted"
+}
+```
+
+`final_version` 默认使用发布前 `current_version`。发布事件不默认制造新的写作版本，而是把当前版本标记为 final/published。如果 trace 没有 `current_version`，使用最新 `revision_events` 的 version；仍无法判断时使用 `published`。
+
+如果 trace 中存在 `snapshots/`：
+
+- 不默认删除快照。
+- 只在用户明确要求“发布后清理临时快照”时，删除未标记为 `final` 或 `learning_sample` 的临时快照。
+- 删除或保留的快照路径写入 `cleanup.removed_snapshots` 和 `cleanup.retained_snapshots`。
+
+publisher 只更新已有 trace，不负责学习、激活规则或压缩风格资产。发布后的规则学习和 compaction 仍交给 `beeweave-writing-style-learner` 和 `beeweave-writing-skill-evolver`。
+
+如果 trace 更新失败，但文章已经发布成功，保留已发布文件状态，不回滚发布；最终回复中说明 trace 更新失败原因。
+
 ## 内化到 Wiki
 
 发布成功后，立即用已发布文件作为 source 进入 `beeweave-ingest` skill 的普通文件 ingest 流程。`beeweave-ingest` 是 agent skill，不要求存在同名 shell 命令；不要运行或查找 `beeweave-ingest <file>` 可执行命令。
@@ -111,6 +167,7 @@ $BEEWEAVE_WORKBENCH_PATH/articles/published/
 
 - 已发布文件路径
 - `status: published` 是否已更新
+- 写作 trace 是否已更新；如果未找到或更新失败，说明原因
 - wiki ingest 是否完成
 - 如果 ingest 失败，给出可重试的 `beeweave-ingest` skill 调用方式
 

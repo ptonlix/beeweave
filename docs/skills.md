@@ -44,11 +44,57 @@ Workbench/project-local skills include:
   external PPT skills such as `guizang-ppt-skill` when needed.
 - `beeweave-social-writer`: draft X/Twitter posts, threads, short takes, and
   social copy.
+- `beeweave-writing-style-initializer`: initialize Workbench writing style asset
+  templates under `workbench/writing/style/`.
+- `beeweave-writing-style-learner`: extract pending writing style rules from
+  historical articles, trace bundles, revision diffs, user-directed AI rewrites,
+  manual edits, and explicit feedback.
+- `beeweave-writing-skill-evolver`: review pending writing rules, assign
+  route/instruction/resource layers, validate, activate, reject, roll back, and
+  compact style assets.
 - `beeweave-url-capture`: download a URL into `workbench/inbox/web/` as a
   self-contained raw capture bundle, then hand off to
   `/beeweave-ingest workbench/inbox`.
 - `baoyu-url-to-markdown`: bundled project-local URL extraction dependency used
   by `beeweave-url-capture`; it is not installed as a default global skill.
+
+## Self-Evolving Writing
+
+BeeWeave's writing loop separates writing, learning, and evolution:
+
+- writer skills create drafts, update the single current working draft, read
+  active style assets, and append writing trace events.
+- `beeweave-writing-style-initializer` creates the fixed writing style asset
+  files before learning starts.
+- `beeweave-writing-style-learner` studies historical articles, traces,
+  before/after revisions, and feedback, then writes reviewable candidates to
+  `workbench/writing/style/pending_rules.md`.
+- `beeweave-writing-skill-evolver` reviews pending rules, validates changes,
+  activates or rejects rules, records `evolution_log.md`, and performs
+  compaction.
+
+Workbench-local writing assets live under:
+
+```text
+workbench/writing/
++-- style/
++-- traces/
++-- eval/
+```
+
+These files are user data. BeeWeave source skills provide generic templates
+only. The `beeweave-writing-style-initializer` skill is the explicit
+initialization entrypoint. Its `references/` directory owns the file templates.
+Article and social writers prompt the user to initialize style assets when they
+are missing, then continue with built-in defaults if the user wants to keep
+writing.
+
+Writers default to one current draft in `workbench/articles/drafts/`. Revisions
+append ordered `revision_events` to `workbench/writing/traces/.../trace.json`
+instead of creating default `-v2` or `-v3` draft files. Traces store paths,
+summaries, diff summaries, and learning status by default; full snapshots are
+stored under trace `snapshots/` only when the user explicitly asks for complete
+process snapshots or marks a version as a learning sample.
 
 ## External Skills
 
