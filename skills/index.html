@@ -437,6 +437,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#self-evolving-writing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Self-Evolving Writing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-skills" class="md-nav__link">
     <span class="md-ellipsis">
       External Skills
@@ -560,6 +569,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#self-evolving-writing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Self-Evolving Writing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-skills" class="md-nav__link">
     <span class="md-ellipsis">
       External Skills
@@ -633,24 +651,64 @@ complete workflow surface.</p>
   external PPT skills such as <code>guizang-ppt-skill</code> when needed.</li>
 <li><code>beeweave-social-writer</code>: draft X/Twitter posts, threads, short takes, and
   social copy.</li>
+<li><code>beeweave-writing-style-initializer</code>: initialize Workbench writing style asset
+  templates under <code>workbench/writing/style/</code>.</li>
+<li><code>beeweave-writing-style-learner</code>: extract pending writing style rules from
+  historical articles, trace bundles, revision diffs, user-directed AI rewrites,
+  manual edits, and explicit feedback.</li>
+<li><code>beeweave-writing-skill-evolver</code>: review pending writing rules, assign
+  route/instruction/resource layers, validate, activate, reject, roll back, and
+  compact style assets.</li>
 <li><code>beeweave-url-capture</code>: download a URL into <code>workbench/inbox/web/</code> as a
   self-contained raw capture bundle, then hand off to
   <code>/beeweave-ingest workbench/inbox</code>.</li>
 <li><code>baoyu-url-to-markdown</code>: bundled project-local URL extraction dependency used
   by <code>beeweave-url-capture</code>; it is not installed as a default global skill.</li>
 </ul>
+<h2 id="self-evolving-writing">Self-Evolving Writing<a class="headerlink" href="#self-evolving-writing" title="Permanent link">&para;</a></h2>
+<p>BeeWeave's writing loop separates writing, learning, and evolution:</p>
+<ul>
+<li>writer skills create drafts, update the single current working draft, read
+  active style assets, and append writing trace events.</li>
+<li><code>beeweave-writing-style-initializer</code> creates the fixed writing style asset
+  files before learning starts.</li>
+<li><code>beeweave-writing-style-learner</code> studies historical articles, traces,
+  before/after revisions, and feedback, then writes reviewable candidates to
+  <code>workbench/writing/style/pending_rules.md</code>.</li>
+<li><code>beeweave-writing-skill-evolver</code> reviews pending rules, validates changes,
+  activates or rejects rules, records <code>evolution_log.md</code>, and performs
+  compaction.</li>
+</ul>
+<p>Workbench-local writing assets live under:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>workbench/writing/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>+-- style/
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>+-- traces/
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>+-- eval/
+</code></pre></div>
+<p>These files are user data. BeeWeave source skills provide generic templates
+only. The <code>beeweave-writing-style-initializer</code> skill is the explicit
+initialization entrypoint. Its <code>references/</code> directory owns the file templates.
+Article and social writers prompt the user to initialize style assets when they
+are missing, then continue with built-in defaults if the user wants to keep
+writing.</p>
+<p>Writers default to one current draft in <code>workbench/articles/drafts/</code>. Revisions
+append ordered <code>revision_events</code> to <code>workbench/writing/traces/.../trace.json</code>
+instead of creating default <code>-v2</code> or <code>-v3</code> draft files. Traces store paths,
+summaries, diff summaries, and learning status by default; full snapshots are
+stored under trace <code>snapshots/</code> only when the user explicitly asks for complete
+process snapshots or marks a version as a learning sample.</p>
 <h2 id="external-skills">External Skills<a class="headerlink" href="#external-skills" title="Permanent link">&para;</a></h2>
 <p>External skills are user-installed third-party agent skills managed by
 <code>bwe external</code>. They are stored outside BeeWeave runtime folders:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>~/.beeweave/external/
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>+-- repos/       # cloned source repositories
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>+-- skills/      # stable skill-name entries
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>+-- manifest.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>~/.beeweave/external/
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>+-- repos/       # cloned source repositories
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>+-- skills/      # stable skill-name entries
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>+-- manifest.json
 </code></pre></div>
 <p>Install one external skill and link it into the current workspace:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
 </code></pre></div>
 <p>For multi-skill repositories, specify <code>--skill</code> or <code>--path</code>; BeeWeave does not
 install every skill from a repository unless <code>--all</code> is explicit.</p>
@@ -661,12 +719,12 @@ directory, vault, or workbench. Use <code>bwe external list</code> and
 <p>Create named configs such as <code>~/.beeweave/config.work</code>. Each config is a full
 BeeWeave profile: vault path, workbench path, QMD settings, and tool-specific
 paths. Route one request with <code>@name</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>beeweave-query @work what do I know about deployment rollbacks?
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>@research update my BeeWeave vault
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>beeweave-query @work what do I know about deployment rollbacks?
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>@research update my BeeWeave vault
 </code></pre></div>
 <p>The override applies only to that request.</p>
 <p>To make a named profile the default for future requests without <code>@name</code>, run:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
 </code></pre></div>
 <p>BeeWeave backs up the existing <code>~/.beeweave/config</code> before copying
 <code>~/.beeweave/config.work</code> into place.</p>
