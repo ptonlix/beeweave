@@ -93,6 +93,14 @@ bwe external install https://github.com/op7418/guizang-ppt-skill \
 bwe external install https://github.com/JimLiu/baoyu-skills \
   --skill baoyu-url-to-markdown
 
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-article-illustrator \
+  --link-project .
+
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-image-gen \
+  --link-project .
+
 bwe external install https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
 ```
 

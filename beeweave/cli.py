@@ -71,6 +71,7 @@ LOCAL_WIKI_SKILL_DESCRIPTIONS = {
     "beeweave-vault-skill-factory": "turn vault practices into skills",
 }
 WORKBENCH_SKILL_DESCRIPTIONS = {
+    "beeweave-article-illustration": "set up and run article illustration through Baoyu API image generation",
     "beeweave-article-publisher": "publish workbench drafts and ingest finished articles into the wiki",
     "beeweave-article-writer": "long-form articles, blog posts, essays, and opinion pieces",
     "beeweave-ppt-writer": "HTML PPT decks and presentation projects using external PPT skills",
