@@ -139,8 +139,7 @@ def test_resolve_project_root_falls_back_to_beeweave_config(tmp_path):
     config = tmp_path / ".beeweave" / "config"
     _write(
         config,
-        f'BEEWEAVE_VAULT_PATH="{project / "vault"}"\n'
-        f'BEEWEAVE_WORKBENCH_PATH="{project / "workbench"}"\n',
+        f'BEEWEAVE_VAULT_PATH="{project / "vault"}"\nBEEWEAVE_WORKBENCH_PATH="{project / "workbench"}"\n',
     )
 
     resolution = illustrate_doctor.resolve_project_root(tmp_path / "elsewhere", config_path=config)

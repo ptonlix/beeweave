@@ -552,7 +552,9 @@ def _skill_integrity_errors(config: DoctorConfig) -> list[str]:
 
 
 def build_fingerprint(config: DoctorConfig) -> dict[str, Any]:
-    env_keys = sorted({name for group in _CREDENTIAL_GROUPS[config.provider] for name in group} | set(_BASE_URL_VARS[config.provider]))
+    env_keys = sorted(
+        {name for group in _CREDENTIAL_GROUPS[config.provider] for name in group} | set(_BASE_URL_VARS[config.provider])
+    )
     env_fingerprint = {
         key: {
             "present": bool(config.env.get(key)),
@@ -609,7 +611,9 @@ def _missing_config_result(provider: str, loaded: DoctorConfigLoad) -> DoctorRes
     )
 
 
-def _build_config_check_result(config: DoctorConfig, loaded: DoctorConfigLoad, fingerprint: dict[str, Any]) -> DoctorResult:
+def _build_config_check_result(
+    config: DoctorConfig, loaded: DoctorConfigLoad, fingerprint: dict[str, Any]
+) -> DoctorResult:
     runtime_errors, runner = _runtime_errors()
     errors = list(loaded.errors)
     warnings = list(loaded.warnings)
