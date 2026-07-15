@@ -8,6 +8,7 @@ BeeWeave exposes the `bwe` command.
 bwe setup             install skills into agents and write config
 bwe profile           manage BeeWeave profile config files
 bwe external          manage user-installed external agent skills
+bwe illustrate        validate article illustration provider configuration
 bwe uninstall         remove BeeWeave skills and config
 bwe upgrade           upgrade BeeWeave and refresh installed skills
 bwe list              list bundled skills
@@ -40,6 +41,8 @@ bwe setup --profile work
 bwe profile set-default work
 bwe external install https://github.com/op7418/guizang-ppt-skill --skill guizang-ppt-skill --link-project .
 bwe external list
+bwe illustrate doctor --provider openai
+bwe illustrate doctor --provider openai --probe-image
 bwe uninstall --all
 bwe upgrade --check
 bwe upgrade
@@ -103,12 +106,53 @@ bwe external install https://github.com/op7418/guizang-ppt-skill \
 bwe external install https://github.com/JimLiu/baoyu-skills \
   --skill baoyu-url-to-markdown
 
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-article-illustrator \
+  --link-project .
+
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-image-gen \
+  --link-project .
+
 bwe external install https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
 ```
 
 BeeWeave does not install every skill from a multi-skill repository unless
 `--all` is explicit. Use `bwe external link <skill-name> --project <path>` when
 you want to link an already installed external skill into another workspace.
+
+## Article Illustration Doctor
+
+Use `bwe illustrate doctor` after configuring `beeweave-article-illustration`
+and before running billable article image generation:
+
+```bash
+bwe illustrate doctor --provider openai
+```
+
+The default doctor is non-billing. It checks the current workspace/project root
+configuration under `./.baoyu-skills/`, the selected provider/model, required
+credential variables, Baoyu upstream skill files, and a Bun-compatible runner.
+It writes a reusable cache to:
+
+```text
+./.baoyu-skills/doctor.json
+```
+
+If the provider, model, base URL, relevant env variables, or upstream Baoyu
+skill fingerprints change, the cache becomes stale and the doctor must run
+again. Use `--force` to ignore an existing passing cache.
+
+To run one real minimal image probe, pass `--probe-image`:
+
+```bash
+bwe illustrate doctor --provider openai --probe-image
+```
+
+This sends a real provider request and may incur provider charges. It should be
+used only after explicit user confirmation. BeeWeave passes configured base URLs
+through as-is; it does not append `/v1`, infer endpoints, or rewrite
+`./.baoyu-skills/.env`.
 
 ## Upgrade
 

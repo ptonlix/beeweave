@@ -8,6 +8,7 @@ BeeWeave 提供 `bwe` 命令。
 bwe setup             安装 skills 并写入配置
 bwe profile           管理 BeeWeave profile 配置文件
 bwe external          管理用户安装的外部 Agent skills
+bwe illustrate        检测文章配图 provider 配置
 bwe uninstall         移除 BeeWeave skills 和配置
 bwe upgrade           升级 BeeWeave 并刷新已安装 skills
 bwe list              列出内置 skills
@@ -40,6 +41,8 @@ bwe setup --profile work
 bwe profile set-default work
 bwe external install https://github.com/op7418/guizang-ppt-skill --skill guizang-ppt-skill --link-project .
 bwe external list
+bwe illustrate doctor --provider openai
+bwe illustrate doctor --provider openai --probe-image
 bwe uninstall --all
 bwe upgrade --check
 bwe upgrade
@@ -93,12 +96,50 @@ bwe external install https://github.com/op7418/guizang-ppt-skill \
 bwe external install https://github.com/JimLiu/baoyu-skills \
   --skill baoyu-url-to-markdown
 
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-article-illustrator \
+  --link-project .
+
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-image-gen \
+  --link-project .
+
 bwe external install https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
 ```
 
 BeeWeave 不会默认安装多 skill 仓库里的所有 skills，除非你显式传入
 `--all`。如果要把已经安装的外部 skill 链接到另一个工作区，使用
 `bwe external link <skill-name> --project <path>`。
+
+## 文章配图 Doctor
+
+配置 `beeweave-article-illustration` 后、正式发起可能扣费的文章图片生成前，
+使用 doctor 检测当前 provider 配置：
+
+```bash
+bwe illustrate doctor --provider openai
+```
+
+默认 doctor 不生成图片、不发起扣费图片请求。它会检查当前 workspace/project
+root 下的 `./.baoyu-skills/` 项目配置、所选 provider/model、必需凭证变量、
+Baoyu 上游 skill 文件，以及 `bun` 或 `npx -y bun` 是否可用。通过结果会缓存到：
+
+```text
+./.baoyu-skills/doctor.json
+```
+
+如果 provider、模型、base URL、相关环境变量或 Baoyu 上游 skill 指纹发生变化，
+缓存会失效，需要重新检测。可以用 `--force` 忽略已有通过缓存。
+
+如果要做一次真实最小图片探测，使用：
+
+```bash
+bwe illustrate doctor --provider openai --probe-image
+```
+
+该模式会真实请求 provider，可能产生费用，只能在用户明确同意后执行。BeeWeave
+会原样使用你配置的 base URL；不会自动补 `/v1`、推导 endpoint，也不会改写
+`./.baoyu-skills/.env`。
 
 ## Upgrade
 

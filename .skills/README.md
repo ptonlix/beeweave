@@ -65,6 +65,7 @@ Global skills
     [ ] beeweave-memory-bridge
 
 Workbench/project-local skills:
+  beeweave-article-illustration — setup and run article illustration through Baoyu API image generation
   beeweave-article-writer — long-form articles, blog posts, essays, and opinion pieces
   beeweave-article-publisher — publish drafts and ingest finished pieces into the wiki
   beeweave-ppt-writer  — HTML PPT decks and presentation projects
@@ -128,6 +129,7 @@ project-locally with the full skill set, not globally.
 
 | Skill | What it does |
 |---|---|
+| `beeweave-article-illustration` | Set up and run article illustration through `baoyu-article-illustrator` and `baoyu-image-gen`, always using API image generation rather than runtime-native image tools |
 | `beeweave-article-writer` | Long-form articles, blog posts, essays, and opinion pieces |
 | `beeweave-article-publisher` | Move finished drafts to `workbench/articles/published/`, mark them published, and ingest them into the wiki |
 | `beeweave-ppt-writer` | Create HTML PPT decks under `workbench/ppt/`, using `guizang-ppt-skill` installed on demand through `bwe external` |
@@ -151,6 +153,19 @@ initialize them with the initializer, then continue with built-in defaults if
 the user wants to keep writing. Real user style assets are created under the
 user's Workbench at `workbench/writing/`.
 
+Article illustration uses the external Baoyu skills `baoyu-article-illustrator`
+and `baoyu-image-gen`. The BeeWeave skill writes project-local configuration
+under `./.baoyu-skills/`, fixes the backend to `baoyu-image-gen`, keeps output
+in each article's `imgs/` directory, and validates provider configuration with:
+
+```bash
+bwe illustrate doctor --provider <provider>
+```
+
+The doctor cache lives at `./.baoyu-skills/doctor.json`. A real minimal image
+probe is available with `--probe-image`, but it may incur provider charges and
+should only run after explicit user confirmation.
+
 ## External Skills
 
 External skills are user-installed third-party Agent Skills managed by
@@ -172,6 +187,14 @@ bwe external install https://github.com/op7418/guizang-ppt-skill \
 
 bwe external install https://github.com/JimLiu/baoyu-skills \
   --skill baoyu-url-to-markdown
+
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-article-illustrator \
+  --link-project .
+
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-image-gen \
+  --link-project .
 
 bwe external install https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
 ```

@@ -31,7 +31,9 @@ plugins:
             - Architecture: architecture.md
             - Data Flywheel: flywheel.md
             - Agents: agents.md
-            - Skills: skills.md
+            - Skills:
+                - Skills Overview: skills.md
+                - Self-Evolving Writing Workflow: self-evolving-writing.md
             - CLI: cli.md
             - Development: development.md
         - locale: zh

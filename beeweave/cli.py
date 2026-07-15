@@ -17,7 +17,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from beeweave import __version__, external, profiles, ui, uninstall, update_notice, upgrade
+from beeweave import __version__, external, illustrate_doctor, profiles, ui, uninstall, update_notice, upgrade
 
 HOME = Path.home()
 GLOBAL_CONFIG_DIR = HOME / ".beeweave"
@@ -71,6 +71,7 @@ LOCAL_WIKI_SKILL_DESCRIPTIONS = {
     "beeweave-vault-skill-factory": "turn vault practices into skills",
 }
 WORKBENCH_SKILL_DESCRIPTIONS = {
+    "beeweave-article-illustration": "set up and run article illustration through Baoyu API image generation",
     "beeweave-article-publisher": "publish workbench drafts and ingest finished articles into the wiki",
     "beeweave-article-writer": "long-form articles, blog posts, essays, and opinion pieces",
     "beeweave-ppt-writer": "HTML PPT decks and presentation projects using external PPT skills",
@@ -1240,6 +1241,58 @@ def cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_illustrate_doctor(args: argparse.Namespace) -> int:
+    profile = profiles.parse_profile(args.profile)
+    config_path = profiles.config_path_for_profile(profile, config_dir=GLOBAL_CONFIG_DIR, default_config=GLOBAL_CONFIG)
+    resolution = illustrate_doctor.resolve_project_root(
+        Path.cwd(),
+        explicit_project=args.project,
+        config_path=config_path,
+    )
+    project_root = resolution.project_root
+    if args.probe_image:
+        ui.print_status("warning", "probe-image 会发起一次真实图片生成探测，可能产生 provider 费用。")
+        result, reused = illustrate_doctor.run_probe_image(
+            project_root,
+            args.provider,
+            force=args.force,
+            profile=profile,
+            install_state_path=upgrade.install_state_path(GLOBAL_CONFIG_DIR),
+        )
+    else:
+        result, reused = illustrate_doctor.run_non_billing_checks(
+            project_root,
+            args.provider,
+            force=args.force,
+            profile=profile,
+            install_state_path=upgrade.install_state_path(GLOBAL_CONFIG_DIR),
+        )
+
+    rows: list[tuple[str, str | int | None]] = [
+        ("Project", str(project_root)),
+        ("Project source", resolution.source),
+        ("Profile", profile),
+        ("Provider", result.provider),
+        ("Model", result.model or "(missing)"),
+        ("Status", result.status),
+        ("Check level", result.check_level),
+        ("Cache", "reused" if reused else str(illustrate_doctor.doctor_cache_path(project_root))),
+        ("Base URL", result.base_url or "(provider default)"),
+    ]
+    if result.response_kind:
+        rows.append(("Response kind", result.response_kind))
+    if result.verification:
+        rows.append(("Verification", result.verification))
+    if result.latency_ms is not None:
+        rows.append(("Latency", f"{result.latency_ms} ms"))
+    if result.warnings:
+        rows.append(("Notes", "; ".join(result.warnings)))
+    if result.errors:
+        rows.append(("Errors", "; ".join(result.errors)))
+    ui.print_summary_panel("Article illustration doctor", rows)
+    return 0 if result.status == "passed" else 1
+
+
 def _print_version_check(result: upgrade.VersionCheck) -> None:
     if result.latest is None:
         rows: list[tuple[str, str | int | None]] = [
@@ -1520,6 +1573,28 @@ def build_parser() -> argparse.ArgumentParser:
     psd = profile_sub.add_parser("set-default", help="copy a named profile to ~/.beeweave/config")
     psd.add_argument("name", help="named profile to copy from ~/.beeweave/config.NAME")
     psd.set_defaults(func=cmd_profile_set_default)
+
+    il = sub.add_parser("illustrate", help="doctor article illustration provider configuration")
+    illustrate_sub = il.add_subparsers(dest="illustrate_command")
+    doctor = illustrate_sub.add_parser("doctor", help="validate article illustration provider configuration")
+    doctor.add_argument("--provider", required=True, choices=illustrate_doctor.SUPPORTED_PROVIDERS)
+    doctor.add_argument(
+        "--project",
+        metavar="PATH",
+        help="workspace/project root that contains .baoyu-skills (default: discover from cwd or BeeWeave config)",
+    )
+    doctor.add_argument(
+        "--profile",
+        metavar="NAME",
+        help='BeeWeave profile config to resolve project root from (default: "default")',
+    )
+    doctor.add_argument(
+        "--probe-image",
+        action="store_true",
+        help="send one explicit real image generation probe; this may incur provider charges",
+    )
+    doctor.add_argument("--force", action="store_true", help="ignore any existing passed doctor cache")
+    doctor.set_defaults(func=cmd_illustrate_doctor)
 
     gq = sub.add_parser(
         "graph-query",

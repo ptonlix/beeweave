@@ -32,6 +32,9 @@ bwe setup --global-extra beeweave-capture,beeweave-status
 
 Workbench/project-local skills 包括：
 
+- `beeweave-article-illustration`：通过 `baoyu-article-illustrator` 和
+  `baoyu-image-gen` 设置并运行文章配图，默认统一使用 API 图片生成，而不是各
+  Agent 的运行时原生图片工具。
 - `beeweave-article-writer`：起草长文、博客、文章和观点稿。
 - `beeweave-article-publisher`：把完成稿移动到
   `workbench/articles/published/`，并把发布内容 ingest 进 vault。
@@ -77,6 +80,61 @@ BeeWeave 不会默认安装整个多 skill 仓库，除非你显式传入 `--all
 外部 skills 不会被打包进 BeeWeave wheel、源码 `.skills/` 目录、vault 或
 workbench。使用 `bwe external list` 和 `bwe external info <skill-name>`
 可以查看本机已经安装的外部 skills。
+
+## 文章配图 Setup
+
+当工作区需要给文章生成配图时，使用 `beeweave-article-illustration`。该 skill
+会安装并链接两个必需的 Baoyu 上游 skills：
+
+```bash
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-article-illustrator \
+  --link-project .
+
+bwe external install https://github.com/jimliu/baoyu-skills \
+  --skill baoyu-image-gen \
+  --link-project .
+```
+
+setup 会在当前 workspace/project root 下的 `./.baoyu-skills/` 写入项目级 Baoyu 配置，并把
+`baoyu-article-illustrator` 固定为 `preferred_image_backend:
+baoyu-image-gen`。它不会配置 Codex `imagegen`、Cursor `GenerateImage`、
+Hermes `image_generate` 或其它运行时原生图片工具。
+固定输出布局是文章目录内的 `imgs/`：Agent 会先在需要时把 Markdown 文件整理到
+文章专属目录，再让 Baoyu 插入 `imgs/NN-{type}-{slug}.png` 这样的相对链接。
+
+图片 provider 来自 `baoyu-image-gen` 支持的 API providers，例如 OpenAI、
+Google、DashScope、OpenRouter、Azure、Z.AI、MiniMax、Replicate、Jimeng、
+Seedream 或 Agnes。凭证放在当前 workspace/project root 下的
+`./.baoyu-skills/.env`，不要提交这个文件。自定义 provider endpoint/base URL
+也通过同一个 env 文件配置，例如
+`OPENAI_BASE_URL`、`GOOGLE_BASE_URL`、`OPENROUTER_BASE_URL`、
+`DASHSCOPE_BASE_URL`、`ZAI_BASE_URL`、`MINIMAX_BASE_URL`、
+`REPLICATE_BASE_URL`、`JIMENG_BASE_URL`、`SEEDREAM_BASE_URL`、
+`AGNES_BASE_URL`，以及 Azure 必需的 `AZURE_OPENAI_BASE_URL`。
+
+provider 配置创建或更新后，先运行非扣费 doctor：
+
+```bash
+bwe illustrate doctor --provider <provider>
+```
+
+doctor 会写入 `./.baoyu-skills/doctor.json`。后续配图请求会复用这次通过缓存；
+只要 provider、模型、base URL、相关环境变量和 Baoyu skill 文件没有变化，就不重复检测。
+如果用户明确同意做一次真实最小图片探测，再运行：
+
+```bash
+bwe illustrate doctor --provider <provider> --probe-image
+```
+
+`--probe-image` 可能产生 provider 费用。BeeWeave 会原样使用配置的 base URL；
+不会自动补 `/v1`、推导 endpoint 或改写 URL。
+
+setup 完成后，可以让 Agent 按固定默认值给文章配图：
+
+```text
+/beeweave-article-illustration path/to/article.md 直接生成
+```
 
 ## 命名 Profile 路由
 
