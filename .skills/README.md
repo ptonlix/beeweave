@@ -153,6 +153,19 @@ initialize them with the initializer, then continue with built-in defaults if
 the user wants to keep writing. Real user style assets are created under the
 user's Workbench at `workbench/writing/`.
 
+Article illustration uses the external Baoyu skills `baoyu-article-illustrator`
+and `baoyu-image-gen`. The BeeWeave skill writes project-local configuration
+under `./.baoyu-skills/`, fixes the backend to `baoyu-image-gen`, keeps output
+in each article's `imgs/` directory, and validates provider configuration with:
+
+```bash
+bwe illustrate doctor --provider <provider>
+```
+
+The doctor cache lives at `./.baoyu-skills/doctor.json`. A real minimal image
+probe is available with `--probe-image`, but it may incur provider charges and
+should only run after explicit user confirmation.
+
 ## External Skills
 
 External skills are user-installed third-party Agent Skills managed by

@@ -17,13 +17,12 @@
 .kiro/skills/<skill>/SKILL.md
 .gemini/skills/<skill>/SKILL.md
 .hermes/skills/<skill>/SKILL.md
-.openclaw/skills/<skill>/SKILL.md
 .copilot/skills/<skill>/SKILL.md
 .trae/skills/<skill>/SKILL.md
 .trae-cn/skills/<skill>/SKILL.md
 ```
 
-只检查已经存在的 skills 目录。找到后将该目录作为上游 skill 根目录。
+只检查当前项目中已经存在的 skills 目录。`generic`、`antigravity` 和 `openclaw` 等 agent 共享项目级 `.agents/skills/`。找到后将该目录作为上游 skill 根目录。
 
 ## Link Existing External Skill
 

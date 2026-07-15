@@ -100,6 +100,8 @@ setup 会在当前 workspace/project root 下的 `./.baoyu-skills/` 写入项目
 `baoyu-article-illustrator` 固定为 `preferred_image_backend:
 baoyu-image-gen`。它不会配置 Codex `imagegen`、Cursor `GenerateImage`、
 Hermes `image_generate` 或其它运行时原生图片工具。
+固定输出布局是文章目录内的 `imgs/`：Agent 会先在需要时把 Markdown 文件整理到
+文章专属目录，再让 Baoyu 插入 `imgs/NN-{type}-{slug}.png` 这样的相对链接。
 
 图片 provider 来自 `baoyu-image-gen` 支持的 API providers，例如 OpenAI、
 Google、DashScope、OpenRouter、Azure、Z.AI、MiniMax、Replicate、Jimeng、
@@ -110,6 +112,23 @@ Seedream 或 Agnes。凭证放在当前 workspace/project root 下的
 `DASHSCOPE_BASE_URL`、`ZAI_BASE_URL`、`MINIMAX_BASE_URL`、
 `REPLICATE_BASE_URL`、`JIMENG_BASE_URL`、`SEEDREAM_BASE_URL`、
 `AGNES_BASE_URL`，以及 Azure 必需的 `AZURE_OPENAI_BASE_URL`。
+
+provider 配置创建或更新后，先运行非扣费 doctor：
+
+```bash
+bwe illustrate doctor --provider <provider>
+```
+
+doctor 会写入 `./.baoyu-skills/doctor.json`。后续配图请求会复用这次通过缓存；
+只要 provider、模型、base URL、相关环境变量和 Baoyu skill 文件没有变化，就不重复检测。
+如果用户明确同意做一次真实最小图片探测，再运行：
+
+```bash
+bwe illustrate doctor --provider <provider> --probe-image
+```
+
+`--probe-image` 可能产生 provider 费用。BeeWeave 会原样使用配置的 base URL；
+不会自动补 `/v1`、推导 endpoint 或改写 URL。
 
 setup 完成后，可以让 Agent 按固定默认值给文章配图：
 

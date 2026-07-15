@@ -11,7 +11,7 @@
 - `default_quality`：默认质量。`2k` 更适合正式文章配图、封面和信息图；`normal` 更快、更省成本，适合草稿或预览。BeeWeave 默认 `2k`。
 - `default_aspect_ratio`：默认画面比例。`16:9` 适合横向文章配图和公众号/博客正文；`1:1` 适合社交平台方图；`4:3` 适合传统插图和幻灯片感；`3:4` 适合竖向图文；`9:16` 适合手机竖屏；`2.35:1` 适合电影感横幅。
 - `default_image_size`：Google/OpenRouter 等 provider 的图片尺寸级别。`null` 表示由 quality 推导；`1K` 适合预览；`2K` 适合正式文章；`4K` 适合高分辨率但更慢、更贵。只有用户明确要求时写入，默认 `null`。
-- `default_image_api_dialect`：OpenAI-compatible 网关的请求格式。`openai-native` 用于 OpenAI 官方或严格兼容接口；`ratio-metadata` 用于期望比例和 metadata 分辨率的兼容网关；`null` 表示使用上游默认或环境变量。
+- `default_image_api_dialect`：OpenAI-compatible 网关的请求格式。这不是用户提问项；Agent 根据 provider 和用户给出的 base URL 尽量判断，无法可靠判断时保持 `null`。
 - 自定义 base URL：provider 的 API endpoint。默认不设置，使用官方 endpoint；代理网关、私有部署、OpenAI-compatible gateway 或 Azure 时需要设置。
 - `batch.max_workers`：批量生成最大 worker 数。数值越大并发越高，但更容易触发限流。
 - `batch.provider_limits.<provider>.concurrency`：某个 provider 同时运行的请求数上限。
@@ -36,12 +36,82 @@
 Provider 选择建议：
 
 - 想要默认稳妥、参考图支持和通用质量：优先 `google`。
-- 已有 OpenAI API key 或 OpenAI-compatible 网关：选 `openai`，必要时配置 `OPENAI_BASE_URL` 和 `default_image_api_dialect`。
+- 已有 OpenAI API key 或 OpenAI-compatible 网关：选 `openai`，必要时配置 `OPENAI_BASE_URL`。`default_image_api_dialect` 由 Agent 自动判断，无法可靠判断时保持 `null`。
 - 企业 Azure 环境：选 `azure`，必须提供 deployment 和 `AZURE_OPENAI_BASE_URL`。
 - 国内云服务或 Qwen Image：选 `dashscope`。
 - 需要统一模型网关：选 `openrouter`。
 - 想使用 Replicate 模型生态：选 `replicate`。
 - 已有智谱、MiniMax、火山、Agnes 账号时，按对应 provider 选择。
+
+## Missing Configuration Prompt
+
+当缺少图片生成 provider、模型、凭证或必需 base URL 时，使用下面模板向用户收集配置，让用户明确知道每个字段的含义、是否必填、写入位置和默认建议。
+
+```text
+当前还不能生成图片：缺少图片生成 provider 配置。
+
+已完成：
+- 上游 skills：<已安装/已链接/缺失项>
+- 运行器：<bun | npx -y bun | 缺失>
+- 目标文章：<article-path 或 未提供>
+- 项目配置目录：./.baoyu-skills/
+
+请提供下面信息：
+
+1. Provider（必填）
+   作用：决定使用哪家图片生成 API。
+   可选：google、openai、azure、openrouter、dashscope、zai、minimax、replicate、jimeng、seedream、agnes。
+   建议：<根据文章主题、用户已有账号、网络环境给一个推荐，并说明理由>。
+
+2. 模型或 deployment（必填）
+   作用：写入 baoyu-image-gen 的 default_model.<provider>，后续上游不会再询问模型。
+   默认建议：
+   - google: gemini-3-pro-image
+   - openai: gpt-image-2
+   - azure: 请填写 Azure image deployment 名称
+   - openrouter: google/gemini-3.1-flash-image
+   - dashscope: qwen-image-2.0-pro
+   - zai: glm-image
+   - minimax: image-01
+   - replicate: google/nano-banana-2
+   - jimeng/seedream/agnes: 请填写当前账号可用模型
+
+3. API 凭证（必填）
+   作用：写入 ./.baoyu-skills/.env；回复时可以给变量名和值，Agent 写入后不得再次打印密钥值。
+   示例：OPENAI_API_KEY=...
+   各 provider 需要的变量：
+   - google: GOOGLE_API_KEY 或 GEMINI_API_KEY
+   - openai: OPENAI_API_KEY
+   - azure: AZURE_OPENAI_API_KEY
+   - openrouter: OPENROUTER_API_KEY
+   - dashscope: DASHSCOPE_API_KEY
+   - zai: ZAI_API_KEY 或 BIGMODEL_API_KEY
+   - minimax: MINIMAX_API_KEY
+   - replicate: REPLICATE_API_TOKEN
+   - jimeng: JIMENG_ACCESS_KEY_ID 和 JIMENG_SECRET_ACCESS_KEY
+   - seedream: ARK_API_KEY
+   - agnes: AGNES_API_KEY
+
+4. 自定义 base URL（可选；Azure 必填）
+   作用：使用代理、兼容网关、私有部署或 Azure endpoint。
+   默认：不填写，使用 provider 官方 endpoint。
+   示例：OPENAI_BASE_URL=https://example.com/v1
+   注意：BeeWeave 不会自动补 /v1，也不会改写 URL；传什么就按什么探测。
+
+拿到这些信息后，我会写入：
+- ./.baoyu-skills/.env
+- ./.baoyu-skills/baoyu-article-illustrator/EXTEND.md
+- ./.baoyu-skills/baoyu-image-gen/EXTEND.md
+
+然后运行非扣费检测：
+${BEEWEAVE_CLI:-bwe} illustrate doctor --provider <provider>
+
+doctor 通过后，会询问是否要进行一次真实小图主动探测；只有你同意时才运行 --probe-image，因为它可能产生 provider 费用。
+```
+
+如果用户已经在同一条消息里提供部分字段，只询问缺失字段；不要要求用户重复提供已明确的信息。
+
+`default_image_api_dialect` 不作为用户提问项。Agent 根据 provider 和 base URL 判断：OpenAI 官方或严格兼容接口可写 `openai-native`；只支持比例/metadata 的兼容网关可写 `ratio-metadata`；无法可靠判断时保持 `null`。
 
 ## Custom Base URL
 
@@ -65,7 +135,7 @@ Provider 选择建议：
 
 - 默认不写 base URL，让上游使用 provider 官方 endpoint。
 - 如果用户选择“自定义供应商”“OpenAI-compatible gateway”“代理网关”“私有 endpoint”或明确给出 URL，必须写入所选 provider 对应的 base URL 变量。
-- 对 `openai` 兼容网关，通常还要确认 `default_image_api_dialect`：OpenAI 官方或严格兼容接口用 `openai-native`，只支持比例/metadata 的网关用 `ratio-metadata`。
+- 对 `openai` 兼容网关，不要把 `default_image_api_dialect` 作为用户问题；Agent 根据已知网关能力自动写入 `openai-native` 或 `ratio-metadata`，无法可靠判断时保持 `null`。
 - 对 `azure`，`AZURE_OPENAI_BASE_URL` 必须存在；如果 URL 已包含 `/openai/deployments/<deployment>`，仍建议把 `default_model.azure` 写为同一个 deployment 名称，避免上游再次询问模型。
 - 不要把自定义 base URL 写入 `baoyu-image-gen/EXTEND.md`，除非上游未来明确新增该 schema 字段。
 
@@ -88,3 +158,5 @@ OPENAI_BASE_URL=https://api.openai.com/v1
 ```
 
 提醒用户不要提交当前 workspace/project root 下的 `./.baoyu-skills/.env`，必要时检查项目 `.gitignore` 是否覆盖 `./.baoyu-skills/.env` 或 `./.baoyu-skills/`。
+
+Provider、模型、base URL 或 `default_image_api_dialect` 被创建或修改后，继续读取 `validation-and-handoff.md` 运行 provider doctor。doctor gate、缓存复用、`--probe-image` 费用提示和失败处理只在该 reference 中维护。

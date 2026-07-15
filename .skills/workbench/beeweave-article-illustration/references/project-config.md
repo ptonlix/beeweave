@@ -13,7 +13,7 @@
 - 默认质量：`2k` 或 `normal`，默认 `2k`。
 - 默认比例：默认 `"16:9"`；可选 `"1:1"`、`"4:3"`、`"3:4"`、`"9:16"`、`"2.35:1"`。
 - 默认尺寸：通常为 `null`；只有用户明确要求 `1K`、`2K`、`4K` 或 `WxH` 时写入。
-- API dialect：通常为 `null`；OpenAI 兼容网关需要时可用 `openai-native` 或 `ratio-metadata`。
+- API dialect：不作为用户提问项；通常写 `null`，只有 Agent 能根据 provider/base URL 可靠判断 OpenAI-compatible 网关格式时，才自动写 `openai-native` 或 `ratio-metadata`。
 - 自定义 base URL：默认不设置；当用户使用代理、兼容网关、私有部署或 Azure 时，收集所选 provider 对应的 base URL 环境变量。
 - 文章配图语言：默认 `zh`；可选 `en`、`ja`、`ko`、`auto`。
 - 水印：默认关闭；如开启，收集内容、位置和透明度。
@@ -241,3 +241,5 @@ default_model:
 ```
 
 如果 `default_provider` 为 `null`，上游会按 API key 自动探测 provider；本技能不要这样写。如果所选 provider 的 `default_model.<provider>` 为 `null`，上游会继续询问模型；本技能不要这样写。
+
+写入或修改 `default_provider`、`default_model.<provider>`、`default_image_api_dialect` 或 `./.baoyu-skills/.env` 中的 base URL 后，继续读取 `validation-and-handoff.md` 运行 provider doctor。doctor gate 和真实小图探测规则只在该 reference 中维护。

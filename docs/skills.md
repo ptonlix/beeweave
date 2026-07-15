@@ -146,6 +146,9 @@ relative to the current workspace/project root and pins
 `baoyu-article-illustrator` to `preferred_image_backend:
 baoyu-image-gen`. It does not configure Codex `imagegen`, Cursor
 `GenerateImage`, Hermes `image_generate`, or other runtime-native image tools.
+The fixed output layout is article-local `imgs/`: agents first normalize a
+Markdown file into its own article directory when needed, then let Baoyu insert
+relative image links such as `imgs/NN-{type}-{slug}.png`.
 
 The image provider is selected from API providers supported by
 `baoyu-image-gen`, such as OpenAI, Google, DashScope, OpenRouter, Azure, Z.AI,
@@ -158,6 +161,24 @@ upstream variables such as `OPENAI_BASE_URL`, `GOOGLE_BASE_URL`,
 `MINIMAX_BASE_URL`, `REPLICATE_BASE_URL`, `JIMENG_BASE_URL`,
 `SEEDREAM_BASE_URL`, `AGNES_BASE_URL`, or Azure's required
 `AZURE_OPENAI_BASE_URL`.
+
+After provider configuration is created or updated, run the non-billing doctor:
+
+```bash
+bwe illustrate doctor --provider <provider>
+```
+
+The doctor writes `./.baoyu-skills/doctor.json` and future illustration requests
+reuse that passed cache while the provider, model, base URL, relevant env
+variables, and Baoyu skill files remain unchanged. If the user explicitly agrees
+to a real minimal image probe, run:
+
+```bash
+bwe illustrate doctor --provider <provider> --probe-image
+```
+
+`--probe-image` may incur provider charges. BeeWeave uses configured base URLs
+as-is and does not append `/v1` or rewrite endpoints.
 
 After setup, ask the agent to illustrate an article with the fixed defaults:
 
