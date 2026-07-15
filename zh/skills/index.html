@@ -491,6 +491,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      文章配图 Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#profile" class="md-nav__link">
     <span class="md-ellipsis">
       命名 Profile 路由
@@ -645,6 +654,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      文章配图 Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#profile" class="md-nav__link">
     <span class="md-ellipsis">
       命名 Profile 路由
@@ -697,6 +715,9 @@
 <p>完整 BeeWeave skill 集会安装到你选择的项目本地 Agent 目录中。这样其它项目保持干净，而 BeeWeave 工作区拥有完整工作流能力。</p>
 <p>Workbench/project-local skills 包括：</p>
 <ul>
+<li><code>beeweave-article-illustration</code>：通过 <code>baoyu-article-illustrator</code> 和
+  <code>baoyu-image-gen</code> 设置并运行文章配图，默认统一使用 API 图片生成，而不是各
+  Agent 的运行时原生图片工具。</li>
 <li><code>beeweave-article-writer</code>：起草长文、博客、文章和观点稿。</li>
 <li><code>beeweave-article-publisher</code>：把完成稿移动到
   <code>workbench/articles/published/</code>，并把发布内容 ingest 进 vault。</li>
@@ -733,14 +754,53 @@ BeeWeave 不会默认安装整个多 skill 仓库，除非你显式传入 <code>
 <p>外部 skills 不会被打包进 BeeWeave wheel、源码 <code>.skills/</code> 目录、vault 或
 workbench。使用 <code>bwe external list</code> 和 <code>bwe external info &lt;skill-name&gt;</code>
 可以查看本机已经安装的外部 skills。</p>
+<h2 id="setup">文章配图 Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<p>当工作区需要给文章生成配图时，使用 <code>beeweave-article-illustration</code>。该 skill
+会安装并链接两个必需的 Baoyu 上游 skills：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/jimliu/baoyu-skills<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-article-illustrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/jimliu/baoyu-skills<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-image-gen<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+</code></pre></div>
+<p>setup 会在当前 workspace/project root 下的 <code>./.baoyu-skills/</code> 写入项目级 Baoyu 配置，并把
+<code>baoyu-article-illustrator</code> 固定为 <code>preferred_image_backend:
+baoyu-image-gen</code>。它不会配置 Codex <code>imagegen</code>、Cursor <code>GenerateImage</code>、
+Hermes <code>image_generate</code> 或其它运行时原生图片工具。
+固定输出布局是文章目录内的 <code>imgs/</code>：Agent 会先在需要时把 Markdown 文件整理到
+文章专属目录，再让 Baoyu 插入 <code>imgs/NN-{type}-{slug}.png</code> 这样的相对链接。</p>
+<p>图片 provider 来自 <code>baoyu-image-gen</code> 支持的 API providers，例如 OpenAI、
+Google、DashScope、OpenRouter、Azure、Z.AI、MiniMax、Replicate、Jimeng、
+Seedream 或 Agnes。凭证放在当前 workspace/project root 下的
+<code>./.baoyu-skills/.env</code>，不要提交这个文件。自定义 provider endpoint/base URL
+也通过同一个 env 文件配置，例如
+<code>OPENAI_BASE_URL</code>、<code>GOOGLE_BASE_URL</code>、<code>OPENROUTER_BASE_URL</code>、
+<code>DASHSCOPE_BASE_URL</code>、<code>ZAI_BASE_URL</code>、<code>MINIMAX_BASE_URL</code>、
+<code>REPLICATE_BASE_URL</code>、<code>JIMENG_BASE_URL</code>、<code>SEEDREAM_BASE_URL</code>、
+<code>AGNES_BASE_URL</code>，以及 Azure 必需的 <code>AZURE_OPENAI_BASE_URL</code>。</p>
+<p>provider 配置创建或更新后，先运行非扣费 doctor：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>&lt;provider&gt;
+</code></pre></div>
+<p>doctor 会写入 <code>./.baoyu-skills/doctor.json</code>。后续配图请求会复用这次通过缓存；
+只要 provider、模型、base URL、相关环境变量和 Baoyu skill 文件没有变化，就不重复检测。
+如果用户明确同意做一次真实最小图片探测，再运行：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>&lt;provider&gt;<span class="w"> </span>--probe-image
+</code></pre></div>
+<p><code>--probe-image</code> 可能产生 provider 费用。BeeWeave 会原样使用配置的 base URL；
+不会自动补 <code>/v1</code>、推导 endpoint 或改写 URL。</p>
+<p>setup 完成后，可以让 Agent 按固定默认值给文章配图：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>/beeweave-article-illustration path/to/article.md 直接生成
+</code></pre></div>
 <h2 id="profile">命名 Profile 路由<a class="headerlink" href="#profile" title="Permanent link">&para;</a></h2>
 <p>可以创建 <code>~/.beeweave/config.work</code> 这样的命名配置。每个配置都是一套完整的 BeeWeave profile，包括 vault 路径、workbench 路径、QMD 设置和工具专用路径。然后只为单次请求使用 <code>@name</code>：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>beeweave-query @work what do I know about deployment rollbacks?
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>@research update my BeeWeave vault
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>beeweave-query @work what do I know about deployment rollbacks?
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>@research update my BeeWeave vault
 </code></pre></div>
 <p>该覆盖只影响当前请求。</p>
 <p>如果要把某个命名 profile 设为之后不带 <code>@name</code> 时使用的默认配置，运行：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
 </code></pre></div>
 <p>BeeWeave 会先备份已有的 <code>~/.beeweave/config</code>，再把
 <code>~/.beeweave/config.work</code> 复制过去。</p>

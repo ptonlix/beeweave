@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://ptonlix.github.io/beeweave/cli/">
       
       
-        <link rel="prev" href="../skills/">
+        <link rel="prev" href="../self-evolving-writing/">
       
       
         <link rel="next" href="../development/">
@@ -359,9 +359,25 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../skills/" class="md-nav__link">
+    
+    
+    
+    
+      
         
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
   
   
   <span class="md-ellipsis">
@@ -370,7 +386,65 @@
   </span>
   
 
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Skills
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Skills Overview
+    
+  </span>
+  
+
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../self-evolving-writing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Self-Evolving Writing Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -471,6 +545,15 @@
   <a href="#external-skills" class="md-nav__link">
     <span class="md-ellipsis">
       External Skills
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#article-illustration-doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Article Illustration Doctor
     </span>
   </a>
   
@@ -587,6 +670,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#article-illustration-doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Article Illustration Doctor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#upgrade" class="md-nav__link">
     <span class="md-ellipsis">
       Upgrade
@@ -620,10 +712,11 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bwe setup             install skills into agents and write config
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bwe profile           manage BeeWeave profile config files
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bwe external          manage user-installed external agent skills
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe uninstall         remove BeeWeave skills and config
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bwe upgrade           upgrade BeeWeave and refresh installed skills
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>bwe list              list bundled skills
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>bwe info              show install paths, version, and config
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>bwe illustrate        validate article illustration provider configuration
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>bwe uninstall         remove BeeWeave skills and config
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>bwe upgrade           upgrade BeeWeave and refresh installed skills
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>bwe list              list bundled skills
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>bwe info              show install paths, version, and config
 </code></pre></div>
 <h2 id="knowledge-and-graph-helpers">Knowledge and Graph Helpers<a class="headerlink" href="#knowledge-and-graph-helpers" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bwe graph-query       query the vault wikilink index
@@ -643,10 +736,12 @@
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span>--link-project<span class="w"> </span>.
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>bwe<span class="w"> </span>external<span class="w"> </span>list
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>bwe<span class="w"> </span>uninstall<span class="w"> </span>--all
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>bwe<span class="w"> </span>upgrade<span class="w"> </span>--check
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>bwe<span class="w"> </span>upgrade
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>bwe<span class="w"> </span>info
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>openai
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>openai<span class="w"> </span>--probe-image
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>bwe<span class="w"> </span>uninstall<span class="w"> </span>--all
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>bwe<span class="w"> </span>upgrade<span class="w"> </span>--check
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>bwe<span class="w"> </span>upgrade
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>bwe<span class="w"> </span>info
 </code></pre></div>
 <p>Run <code>bwe setup</code> from the workspace where you want runtime <code>vault/</code> and
 <code>workbench/</code> folders to be created.</p>
@@ -690,18 +785,47 @@ URL, or local path. Use <code>--ref</code> to install from a branch, tag, or com
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/JimLiu/baoyu-skills<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-url-to-markdown
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/jimliu/baoyu-skills<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-article-illustrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/jimliu/baoyu-skills<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-image-gen<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/JimLiu/baoyu-skills/tree/main/skills/baoyu-url-to-markdown
 </code></pre></div>
 <p>BeeWeave does not install every skill from a multi-skill repository unless
 <code>--all</code> is explicit. Use <code>bwe external link &lt;skill-name&gt; --project &lt;path&gt;</code> when
 you want to link an already installed external skill into another workspace.</p>
+<h2 id="article-illustration-doctor">Article Illustration Doctor<a class="headerlink" href="#article-illustration-doctor" title="Permanent link">&para;</a></h2>
+<p>Use <code>bwe illustrate doctor</code> after configuring <code>beeweave-article-illustration</code>
+and before running billable article image generation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>openai
+</code></pre></div>
+<p>The default doctor is non-billing. It checks the current workspace/project root
+configuration under <code>./.baoyu-skills/</code>, the selected provider/model, required
+credential variables, Baoyu upstream skill files, and a Bun-compatible runner.
+It writes a reusable cache to:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>./.baoyu-skills/doctor.json
+</code></pre></div>
+<p>If the provider, model, base URL, relevant env variables, or upstream Baoyu
+skill fingerprints change, the cache becomes stale and the doctor must run
+again. Use <code>--force</code> to ignore an existing passing cache.</p>
+<p>To run one real minimal image probe, pass <code>--probe-image</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>openai<span class="w"> </span>--probe-image
+</code></pre></div>
+<p>This sends a real provider request and may incur provider charges. It should be
+used only after explicit user confirmation. BeeWeave passes configured base URLs
+through as-is; it does not append <code>/v1</code>, infer endpoints, or rewrite
+<code>./.baoyu-skills/.env</code>.</p>
 <h2 id="upgrade">Upgrade<a class="headerlink" href="#upgrade" title="Permanent link">&para;</a></h2>
 <p>Use <code>bwe upgrade --check</code> to compare the installed BeeWeave version with the
 latest package version without changing files.</p>
 <p>Use <code>bwe upgrade</code> for the common upgrade workflow. BeeWeave detects supported
 install methods and upgrades with the matching installer:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>upgrade<span class="w"> </span>beeweave
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>beeweave
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>upgrade<span class="w"> </span>beeweave
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>beeweave
 </code></pre></div>
 <p>After a successful supported package upgrade, BeeWeave replays the setup choices
 recorded by prior successful <code>bwe setup</code> runs. This refreshes installed agent

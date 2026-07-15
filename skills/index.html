@@ -16,7 +16,7 @@
         <link rel="prev" href="../agents/">
       
       
-        <link rel="next" href="../cli/">
+        <link rel="next" href="../self-evolving-writing/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Skills - BeeWeave</title>
+        <title>Skills Overview - BeeWeave</title>
       
     
     
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Skills
+              Skills Overview
             
           </span>
         </div>
@@ -361,6 +361,51 @@
   
   
   
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Skills
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Skills
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
     <li class="md-nav__item md-nav__item--active">
       
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
@@ -374,7 +419,7 @@
   
   
   <span class="md-ellipsis">
-    Skills
+    Skills Overview
     
   </span>
   
@@ -387,7 +432,7 @@
   
   
   <span class="md-ellipsis">
-    Skills
+    Skills Overview
     
   </span>
   
@@ -437,18 +482,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#self-evolving-writing" class="md-nav__link">
+  <a href="#external-skills" class="md-nav__link">
     <span class="md-ellipsis">
-      Self-Evolving Writing
+      External Skills
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#external-skills" class="md-nav__link">
+  <a href="#article-illustration-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      External Skills
+      Article Illustration Setup
     </span>
   </a>
   
@@ -466,6 +511,37 @@
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../self-evolving-writing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Self-Evolving Writing Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -569,18 +645,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#self-evolving-writing" class="md-nav__link">
+  <a href="#external-skills" class="md-nav__link">
     <span class="md-ellipsis">
-      Self-Evolving Writing
+      External Skills
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#external-skills" class="md-nav__link">
+  <a href="#article-illustration-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      External Skills
+      Article Illustration Setup
     </span>
   </a>
   
@@ -643,6 +719,9 @@ This keeps unrelated projects clean while giving the BeeWeave workspace the
 complete workflow surface.</p>
 <p>Workbench/project-local skills include:</p>
 <ul>
+<li><code>beeweave-article-illustration</code>: set up and run article illustration through
+  <code>baoyu-article-illustrator</code> and <code>baoyu-image-gen</code>, always using API image
+  generation rather than runtime-native image tools.</li>
 <li><code>beeweave-article-writer</code>: draft long-form articles, blog posts, essays, and
   opinion pieces.</li>
 <li><code>beeweave-article-publisher</code>: move finished drafts to
@@ -665,66 +744,81 @@ complete workflow surface.</p>
 <li><code>baoyu-url-to-markdown</code>: bundled project-local URL extraction dependency used
   by <code>beeweave-url-capture</code>; it is not installed as a default global skill.</li>
 </ul>
-<h2 id="self-evolving-writing">Self-Evolving Writing<a class="headerlink" href="#self-evolving-writing" title="Permanent link">&para;</a></h2>
-<p>BeeWeave's writing loop separates writing, learning, and evolution:</p>
-<ul>
-<li>writer skills create drafts, update the single current working draft, read
-  active style assets, and append writing trace events.</li>
-<li><code>beeweave-writing-style-initializer</code> creates the fixed writing style asset
-  files before learning starts.</li>
-<li><code>beeweave-writing-style-learner</code> studies historical articles, traces,
-  before/after revisions, and feedback, then writes reviewable candidates to
-  <code>workbench/writing/style/pending_rules.md</code>.</li>
-<li><code>beeweave-writing-skill-evolver</code> reviews pending rules, validates changes,
-  activates or rejects rules, records <code>evolution_log.md</code>, and performs
-  compaction.</li>
-</ul>
-<p>Workbench-local writing assets live under:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>workbench/writing/
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>+-- style/
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>+-- traces/
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>+-- eval/
-</code></pre></div>
-<p>These files are user data. BeeWeave source skills provide generic templates
-only. The <code>beeweave-writing-style-initializer</code> skill is the explicit
-initialization entrypoint. Its <code>references/</code> directory owns the file templates.
-Article and social writers prompt the user to initialize style assets when they
-are missing, then continue with built-in defaults if the user wants to keep
-writing.</p>
-<p>Writers default to one current draft in <code>workbench/articles/drafts/</code>. Revisions
-append ordered <code>revision_events</code> to <code>workbench/writing/traces/.../trace.json</code>
-instead of creating default <code>-v2</code> or <code>-v3</code> draft files. Traces store paths,
-summaries, diff summaries, and learning status by default; full snapshots are
-stored under trace <code>snapshots/</code> only when the user explicitly asks for complete
-process snapshots or marks a version as a learning sample.</p>
+<p>See <a href="../self-evolving-writing/">Self-Evolving Writing Workflow</a> for the complete
+writing style initialization, learning, trace, evolution, publishing, cleanup,
+and compaction workflow.</p>
 <h2 id="external-skills">External Skills<a class="headerlink" href="#external-skills" title="Permanent link">&para;</a></h2>
 <p>External skills are user-installed third-party agent skills managed by
 <code>bwe external</code>. They are stored outside BeeWeave runtime folders:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>~/.beeweave/external/
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>+-- repos/       # cloned source repositories
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>+-- skills/      # stable skill-name entries
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>+-- manifest.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>~/.beeweave/external/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>+-- repos/       # cloned source repositories
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>+-- skills/      # stable skill-name entries
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>+-- manifest.json
 </code></pre></div>
 <p>Install one external skill and link it into the current workspace:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/op7418/guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--skill<span class="w"> </span>guizang-ppt-skill<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
 </code></pre></div>
 <p>For multi-skill repositories, specify <code>--skill</code> or <code>--path</code>; BeeWeave does not
 install every skill from a repository unless <code>--all</code> is explicit.</p>
 <p>External skills are not bundled into the BeeWeave wheel, source <code>.skills/</code>
 directory, vault, or workbench. Use <code>bwe external list</code> and
 <code>bwe external info &lt;skill-name&gt;</code> to inspect what is installed locally.</p>
+<h2 id="article-illustration-setup">Article Illustration Setup<a class="headerlink" href="#article-illustration-setup" title="Permanent link">&para;</a></h2>
+<p>Use <code>beeweave-article-illustration</code> when a workspace needs article images. The
+skill installs and links both required Baoyu upstream skills:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/jimliu/baoyu-skills<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-article-illustrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bwe<span class="w"> </span>external<span class="w"> </span>install<span class="w"> </span>https://github.com/jimliu/baoyu-skills<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>--skill<span class="w"> </span>baoyu-image-gen<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span>--link-project<span class="w"> </span>.
+</code></pre></div>
+<p>The setup writes project-level Baoyu configuration under <code>./.baoyu-skills/</code>
+relative to the current workspace/project root and pins
+<code>baoyu-article-illustrator</code> to <code>preferred_image_backend:
+baoyu-image-gen</code>. It does not configure Codex <code>imagegen</code>, Cursor
+<code>GenerateImage</code>, Hermes <code>image_generate</code>, or other runtime-native image tools.
+The fixed output layout is article-local <code>imgs/</code>: agents first normalize a
+Markdown file into its own article directory when needed, then let Baoyu insert
+relative image links such as <code>imgs/NN-{type}-{slug}.png</code>.</p>
+<p>The image provider is selected from API providers supported by
+<code>baoyu-image-gen</code>, such as OpenAI, Google, DashScope, OpenRouter, Azure, Z.AI,
+MiniMax, Replicate, Jimeng, Seedream, or Agnes. Store provider credentials in
+<code>./.baoyu-skills/.env</code> under the current workspace/project root, and do not
+commit that file.
+Custom provider endpoints are supported through the same env file using the
+upstream variables such as <code>OPENAI_BASE_URL</code>, <code>GOOGLE_BASE_URL</code>,
+<code>OPENROUTER_BASE_URL</code>, <code>DASHSCOPE_BASE_URL</code>, <code>ZAI_BASE_URL</code>,
+<code>MINIMAX_BASE_URL</code>, <code>REPLICATE_BASE_URL</code>, <code>JIMENG_BASE_URL</code>,
+<code>SEEDREAM_BASE_URL</code>, <code>AGNES_BASE_URL</code>, or Azure's required
+<code>AZURE_OPENAI_BASE_URL</code>.</p>
+<p>After provider configuration is created or updated, run the non-billing doctor:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>&lt;provider&gt;
+</code></pre></div>
+<p>The doctor writes <code>./.baoyu-skills/doctor.json</code> and future illustration requests
+reuse that passed cache while the provider, model, base URL, relevant env
+variables, and Baoyu skill files remain unchanged. If the user explicitly agrees
+to a real minimal image probe, run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bwe<span class="w"> </span>illustrate<span class="w"> </span>doctor<span class="w"> </span>--provider<span class="w"> </span>&lt;provider&gt;<span class="w"> </span>--probe-image
+</code></pre></div>
+<p><code>--probe-image</code> may incur provider charges. BeeWeave uses configured base URLs
+as-is and does not append <code>/v1</code> or rewrite endpoints.</p>
+<p>After setup, ask the agent to illustrate an article with the fixed defaults:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>/beeweave-article-illustration path/to/article.md 直接生成
+</code></pre></div>
 <h2 id="named-profile-routing">Named Profile Routing<a class="headerlink" href="#named-profile-routing" title="Permanent link">&para;</a></h2>
 <p>Create named configs such as <code>~/.beeweave/config.work</code>. Each config is a full
 BeeWeave profile: vault path, workbench path, QMD settings, and tool-specific
 paths. Route one request with <code>@name</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>beeweave-query @work what do I know about deployment rollbacks?
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>@research update my BeeWeave vault
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>beeweave-query @work what do I know about deployment rollbacks?
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>@research update my BeeWeave vault
 </code></pre></div>
 <p>The override applies only to that request.</p>
 <p>To make a named profile the default for future requests without <code>@name</code>, run:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>bwe<span class="w"> </span>profile<span class="w"> </span>set-default<span class="w"> </span>work
 </code></pre></div>
 <p>BeeWeave backs up the existing <code>~/.beeweave/config</code> before copying
 <code>~/.beeweave/config.work</code> into place.</p>
