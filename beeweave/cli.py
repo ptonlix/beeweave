@@ -106,6 +106,8 @@ class FriendlyArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
         if self._print_invalid_choice_error(message):
             self.exit(2)
+        if self._print_unrecognized_arguments_error(message):
+            self.exit(2)
         super().error(message)
 
     def _print_invalid_choice_error(self, message: str) -> bool:
@@ -129,6 +131,18 @@ class FriendlyArgumentParser(argparse.ArgumentParser):
             f"unknown command '{choice}'",
             suggestion=f"bwe {' '.join(suggested_argv)}",
             help_command=_help_command_for_dest(dest, suggested_argv),
+        )
+        return True
+
+    def _print_unrecognized_arguments_error(self, message: str) -> bool:
+        match = re.fullmatch(r"unrecognized arguments: (?P<args>.+)", message)
+        if not match:
+            return False
+
+        arguments = match.group("args")
+        ui.print_cli_error(
+            f"unrecognized argument(s): {arguments}",
+            help_command=_help_command_for_unrecognized(getattr(self, "_last_argv", []), self.prog),
         )
         return True
 
@@ -159,6 +173,14 @@ def _help_command_for_dest(dest: str, suggested_argv: list[str] | None = None) -
     if path:
         return f"bwe {' '.join(path)} --help" if dest == "command" else f"bwe {' '.join(path[:-1])} --help"
     return "bwe --help"
+
+
+def _help_command_for_unrecognized(argv: list[str], fallback_prog: str) -> str:
+    for part in argv:
+        if part.startswith("-"):
+            continue
+        return f"bwe {part} --help"
+    return f"{fallback_prog} --help"
 
 
 # ── Data resolution ──────────────────────────────────────────────────────────
@@ -504,10 +526,16 @@ def _parse_agent_list(raw: str) -> list[str]:
     return list(dict.fromkeys(selected))
 
 
-def _parse_menu_selection(raw: str) -> list[str]:
+def _default_agent_list(default_agents: list[str] | tuple[str, ...] | None = None) -> list[str]:
+    if default_agents is None:
+        return list(DEFAULT_AGENTS)
+    return [agent for agent in default_agents if agent in AGENTS]
+
+
+def _parse_menu_selection(raw: str, *, default_agents: list[str] | tuple[str, ...] | None = None) -> list[str]:
     value = raw.strip().lower()
     if not value:
-        return list(DEFAULT_AGENTS)
+        return _default_agent_list(default_agents)
     if value == "all":
         return list(AGENTS)
     if value in {"none", "no", "skip"}:
@@ -529,28 +557,39 @@ def _parse_menu_selection(raw: str) -> list[str]:
     return list(dict.fromkeys(selected))
 
 
-def _choose_agents_numbered() -> list[str]:
+def _agent_selection_hint(default_agents: list[str]) -> str:
+    if not default_agents:
+        return "none"
+    names = list(AGENTS)
+    indices = [str(names.index(agent) + 1) for agent in default_agents if agent in AGENTS]
+    return ",".join(indices) if indices else "none"
+
+
+def _choose_agents_numbered(default_agents: list[str] | tuple[str, ...] | None = None) -> list[str]:
+    defaults = _default_agent_list(default_agents)
     print("  Install skills for which agents?")
     for idx, (agent, meta) in enumerate(AGENTS.items(), start=1):
-        marker = " (default)" if agent in DEFAULT_AGENTS else ""
+        marker = " (default)" if agent in defaults else ""
         print(f"   {idx:2d}. {agent:<12} {meta['label']}{marker}")
     print("      all          Install every supported agent")
     print("      none         Only create vault/workbench/config")
     print("")
+    hint = _agent_selection_hint(defaults)
     while True:
-        entered = input("  Select agents [1,10]: ").strip()
+        entered = input(f"  Select agents [{hint}]: ").strip()
         try:
-            return _parse_menu_selection(entered)
+            return _parse_menu_selection(entered, default_agents=defaults)
         except ValueError as exc:
             print(f"  {exc}")
 
 
-def _choose_agents_checkbox() -> list[str]:
+def _choose_agents_checkbox(default_agents: list[str] | tuple[str, ...] | None = None) -> list[str]:
+    defaults = set(_default_agent_list(default_agents))
     choices = [
         ui.PromptChoice(
             agent,
             name=f"{agent} - {meta['label']}",
-            enabled=agent in DEFAULT_AGENTS,
+            enabled=agent in defaults,
         )
         for agent, meta in AGENTS.items()
     ]
@@ -563,7 +602,7 @@ def _choose_agents_checkbox() -> list[str]:
     return list(selected)
 
 
-def choose_agents(raw_agents: str | None) -> list[str]:
+def choose_agents(raw_agents: str | None, *, default_agents: list[str] | tuple[str, ...] | None = None) -> list[str]:
     if raw_agents is not None:
         return _parse_agent_list(raw_agents)
 
@@ -571,9 +610,16 @@ def choose_agents(raw_agents: str | None) -> list[str]:
         return list(DEFAULT_AGENTS)
 
     try:
-        return _choose_agents_checkbox()
+        return _choose_agents_checkbox(default_agents)
     except ImportError:
-        return _choose_agents_numbered()
+        return _choose_agents_numbered(default_agents)
+
+
+def _previous_setup_agents(profile: str) -> list[str] | None:
+    state = upgrade.setup_profile_state(GLOBAL_CONFIG_DIR, profile)
+    if state is None:
+        return None
+    return [agent for agent in state.agents if agent in AGENTS]
 
 
 def install_global_skills_for_agents(
@@ -895,7 +941,7 @@ def cmd_setup(args: argparse.Namespace) -> int:
             default_config=GLOBAL_CONFIG,
         )
         selected_global_extra = choose_global_extra(args.global_extra, no_global=args.no_global)
-        selected_agents = choose_agents(args.agents)
+        selected_agents = choose_agents(args.agents, default_agents=_previous_setup_agents(selected_profile))
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -1593,7 +1639,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="bwe",
         description="Install BeeWeave agent skills for capture, creation, querying, and compiled vault maintenance.",
     )
-    p.add_argument("-V", "--version", action="version", version=f"BeeWeave {__version__}")
+    p.add_argument("-V", "-v", "--version", action="version", version=f"BeeWeave {__version__}")
     sub = p.add_subparsers(dest="command", parser_class=FriendlyArgumentParser)
 
     sp = sub.add_parser("setup", help="install skills into your agents and write config (default)")
@@ -1840,7 +1886,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     argv = list(sys.argv[1:] if argv is None else argv)
     # No subcommand → default to `setup` (the common case).
-    if not argv or (argv[0].startswith("-") and argv[0] not in ("-h", "--help", "-V", "--version")):
+    if not argv or (argv[0].startswith("-") and argv[0] not in ("-h", "--help", "-V", "-v", "--version")):
         argv = ["setup", *argv]
     args = parser.parse_args(argv)
     if not getattr(args, "func", None):

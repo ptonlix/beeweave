@@ -73,6 +73,37 @@ class ReplayPlan:
     skipped: list[tuple[str, str]]
 
 
+def _replay_entry_from_raw(name: str, raw: dict[str, Any], *, config_dir: Path) -> ReplayEntry:
+    project_raw = raw.get("project_dir")
+    project_dir = Path(project_raw).expanduser() if isinstance(project_raw, str) and project_raw else None
+    config_raw = raw.get("config_path")
+    config_path = Path(config_raw).expanduser() if isinstance(config_raw, str) and config_raw else config_dir / "config"
+    return ReplayEntry(
+        profile=name,
+        config_path=config_path,
+        project_dir=project_dir.resolve() if project_dir is not None else None,
+        vault_path=str(raw.get("vault_path") or ""),
+        workbench_path=str(raw.get("workbench_path") or ""),
+        agents=[str(agent) for agent in raw.get("agents", []) if isinstance(agent, str)],
+        global_extra=[str(skill) for skill in raw.get("global_extra", []) if isinstance(skill, str)],
+        no_global=bool(raw.get("no_global", False)),
+        no_project_local=bool(raw.get("no_project_local", project_dir is None)),
+        copy=bool(raw.get("copy", False)),
+        last_setup_version=str(raw.get("last_setup_version") or ""),
+        last_setup_at=str(raw.get("last_setup_at") or ""),
+    )
+
+
+def setup_profile_state(config_dir: Path, profile: str) -> ReplayEntry | None:
+    raw_profiles = load_install_state(config_dir).get("profiles", {})
+    if not isinstance(raw_profiles, dict):
+        return None
+    raw_profile = raw_profiles.get(profile)
+    if not isinstance(raw_profile, dict):
+        return None
+    return _replay_entry_from_raw(profile, raw_profile, config_dir=config_dir)
+
+
 def install_state_path(config_dir: Path) -> Path:
     return config_dir / INSTALL_STATE_FILENAME
 
@@ -276,24 +307,5 @@ def replay_plan(config_dir: Path) -> ReplayPlan:
         if project_dir is not None and not project_dir.exists():
             skipped.append((str(name), f"missing project directory: {project_dir}"))
             continue
-        config_raw = raw.get("config_path")
-        config_path = (
-            Path(config_raw).expanduser() if isinstance(config_raw, str) and config_raw else config_dir / "config"
-        )
-        entries.append(
-            ReplayEntry(
-                profile=str(name),
-                config_path=config_path,
-                project_dir=project_dir.resolve() if project_dir is not None else None,
-                vault_path=str(raw.get("vault_path") or ""),
-                workbench_path=str(raw.get("workbench_path") or ""),
-                agents=[str(agent) for agent in raw.get("agents", []) if isinstance(agent, str)],
-                global_extra=[str(skill) for skill in raw.get("global_extra", []) if isinstance(skill, str)],
-                no_global=bool(raw.get("no_global", False)),
-                no_project_local=bool(raw.get("no_project_local", project_dir is None)),
-                copy=bool(raw.get("copy", False)),
-                last_setup_version=str(raw.get("last_setup_version") or ""),
-                last_setup_at=str(raw.get("last_setup_at") or ""),
-            )
-        )
+        entries.append(_replay_entry_from_raw(str(name), raw, config_dir=config_dir))
     return ReplayPlan(entries=entries, skipped=skipped)

@@ -149,6 +149,36 @@ def test_install_state_serialization_and_named_profiles(tmp_path):
     assert state["profiles"]["work"]["copy"] is True
 
 
+def test_setup_profile_state_returns_structured_profile(tmp_path):
+    state = {
+        "schema_version": 1,
+        "profiles": {
+            "default": {
+                "config_path": str(tmp_path / "config"),
+                "project_dir": str(tmp_path / "workspace"),
+                "vault_path": str(tmp_path / "workspace" / "vault"),
+                "workbench_path": str(tmp_path / "workspace" / "workbench"),
+                "agents": ["claude", "pi", "codex", 42],
+                "global_extra": ["beeweave-status"],
+                "no_global": False,
+                "no_project_local": False,
+                "copy": True,
+                "last_setup_version": "0.6.0",
+                "last_setup_at": "2026-07-16T16:52:22+08:00",
+            }
+        },
+    }
+    upgrade.save_install_state(tmp_path, state)
+
+    profile = upgrade.setup_profile_state(tmp_path, "default")
+
+    assert profile is not None
+    assert profile.profile == "default"
+    assert profile.agents == ["claude", "pi", "codex"]
+    assert profile.copy is True
+    assert upgrade.setup_profile_state(tmp_path, "missing") is None
+
+
 def test_replay_plan_skips_missing_project_directories(tmp_path):
     existing = tmp_path / "workspace"
     existing.mkdir()

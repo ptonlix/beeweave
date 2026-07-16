@@ -1,3 +1,4 @@
+import json
 import re
 from datetime import datetime
 from pathlib import Path
@@ -133,8 +134,45 @@ def test_parse_agent_list_supports_all_none_and_commas():
 
 def test_parse_menu_selection_supports_numbers_and_defaults():
     assert cli._parse_menu_selection("") == list(cli.DEFAULT_AGENTS)
+    assert cli._parse_menu_selection("", default_agents=["claude", "pi", "codex"]) == ["claude", "pi", "codex"]
     assert cli._parse_menu_selection("1 9") == ["claude", "codex"]
     assert cli._parse_menu_selection("none") == []
+
+
+def test_choose_agents_checkbox_uses_previous_setup_defaults(monkeypatch):
+    seen: dict[str, object] = {}
+
+    def fake_checkbox_prompt(**kwargs):
+        seen.update(kwargs)
+        return ["claude", "pi", "codex"]
+
+    monkeypatch.setattr(ui, "checkbox_prompt", fake_checkbox_prompt)
+
+    assert cli._choose_agents_checkbox(["claude", "pi", "codex"]) == ["claude", "pi", "codex"]
+    choices = seen["choices"]
+    enabled = [choice.value for choice in choices if choice.enabled]
+    assert enabled == ["claude", "pi", "codex"]
+
+
+def test_previous_setup_agents_reads_profile_state(tmp_path, monkeypatch):
+    config_dir = tmp_path / ".beeweave"
+    config_dir.mkdir()
+    (config_dir / "install-state.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "profiles": {
+                    "default": {
+                        "agents": ["claude", "pi", "codex", "unknown"],
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(cli, "GLOBAL_CONFIG_DIR", config_dir)
+
+    assert cli._previous_setup_agents("default") == ["claude", "pi", "codex"]
 
 
 def test_parse_profile_rejects_path_like_names():
@@ -216,9 +254,24 @@ def test_choose_profile_select_validates_new_profile(tmp_path, monkeypatch):
     assert seen["invalid_message"] == "profile name may only contain letters, numbers, '-' and '_'"
 
 
-def test_setup_rejects_activate_flag():
-    with pytest.raises(SystemExit):
+def test_lowercase_v_prints_version(capsys):
+    with pytest.raises(SystemExit) as exc:
+        cli.build_parser().parse_args(["-v"])
+
+    assert exc.value.code == 0
+    assert f"BeeWeave {cli.__version__}" in capsys.readouterr().out
+
+
+def test_unrecognized_option_uses_cli_error(capsys):
+    with pytest.raises(SystemExit) as exc:
         cli.build_parser().parse_args(["setup", "--activate"])
+
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert "beeweave::cli/error" in err
+    assert "cause: unrecognized argument(s): --activate" in err
+    assert "help:  bwe setup --help" in err
+    assert "usage:" not in err
 
 
 def test_unknown_top_level_command_suggests_upgrade_check(capsys):
