@@ -196,6 +196,20 @@ def print_status(level: str, message: str, *, detail: str | None = None) -> None
         console().print(f"  [bee.dim]{detail}[/]")
 
 
+def print_cli_error(
+    message: str,
+    *,
+    suggestion: str | None = None,
+    help_command: str | None = None,
+) -> None:
+    lines = ["beeweave::cli/error", f"  cause: {message}"]
+    if suggestion:
+        lines.append(f"  hint:  {ansi(suggestion, 'bold', 'cyan')}")
+    if help_command:
+        lines.append(f"  help:  {help_command}")
+    print("\n".join(lines), file=sys.stderr)
+
+
 def prompt_style() -> Any:
     try:
         from InquirerPy.utils import get_style

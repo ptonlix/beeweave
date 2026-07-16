@@ -10,12 +10,16 @@ the vault from any project.
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import os
+import re
 import shutil
 import sys
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
+from typing import Any, NoReturn
 
 from beeweave import __version__, external, illustrate_doctor, profiles, ui, uninstall, update_notice, upgrade
 
@@ -82,6 +86,79 @@ WORKBENCH_SKILL_DESCRIPTIONS = {
     "beeweave-url-capture": "download URLs into workbench/inbox/web as raw capture bundles",
     "baoyu-url-to-markdown": "project-local URL extraction dependency for workbench captures",
 }
+
+COMMAND_SUGGESTIONS = {
+    "remove": "uninstall",
+    "status": "info",
+    "update": "upgrade",
+}
+
+
+class FriendlyArgumentParser(argparse.ArgumentParser):
+    """Keep argparse behavior while making command typos easier to recover from."""
+
+    _last_argv: list[str]
+
+    def parse_args(self, args: Sequence[str] | None = None, namespace: Any = None) -> Any:
+        self._last_argv = list(sys.argv[1:] if args is None else args)
+        return super().parse_args(args, namespace)
+
+    def error(self, message: str) -> NoReturn:
+        if self._print_invalid_choice_error(message):
+            self.exit(2)
+        super().error(message)
+
+    def _print_invalid_choice_error(self, message: str) -> bool:
+        match = re.search(r"argument (?P<dest>[\w-]+): invalid choice: '(?P<choice>[^']+)'", message)
+        if not match:
+            return False
+
+        dest = match.group("dest")
+        choice = match.group("choice")
+        choices = re.findall(r"'([^']+)'", message.split("choose from", 1)[-1])
+        suggestion = _suggest_command(choice, choices)
+        if suggestion is None:
+            ui.print_cli_error(
+                f"unknown command '{choice}'",
+                help_command=_help_command_for_dest(dest),
+            )
+            return True
+
+        suggested_argv = _suggested_argv(getattr(self, "_last_argv", []), choice, suggestion)
+        ui.print_cli_error(
+            f"unknown command '{choice}'",
+            suggestion=f"bwe {' '.join(suggested_argv)}",
+            help_command=_help_command_for_dest(dest, suggested_argv),
+        )
+        return True
+
+
+def _suggest_command(choice: str, choices: list[str]) -> str | None:
+    mapped = COMMAND_SUGGESTIONS.get(choice)
+    if mapped in choices:
+        return mapped
+    matches = difflib.get_close_matches(choice, choices, n=1, cutoff=0.5)
+    return matches[0] if matches else None
+
+
+def _suggested_argv(argv: list[str], choice: str, suggestion: str) -> list[str]:
+    if not argv:
+        return [suggestion]
+    suggested = list(argv)
+    for idx, value in enumerate(suggested):
+        if value == choice:
+            suggested[idx] = suggestion
+            return suggested
+    return [suggestion, *argv[1:]]
+
+
+def _help_command_for_dest(dest: str, suggested_argv: list[str] | None = None) -> str:
+    if not suggested_argv:
+        return "bwe --help"
+    path = [part for part in suggested_argv if part and not part.startswith("-")]
+    if path:
+        return f"bwe {' '.join(path)} --help" if dest == "command" else f"bwe {' '.join(path[:-1])} --help"
+    return "bwe --help"
 
 
 # ── Data resolution ──────────────────────────────────────────────────────────
@@ -1512,12 +1589,12 @@ def cmd_profile_set_default(args: argparse.Namespace) -> int:
 
 # ── Argument parsing ─────────────────────────────────────────────────────────
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
+    p = FriendlyArgumentParser(
         prog="bwe",
         description="Install BeeWeave agent skills for capture, creation, querying, and compiled vault maintenance.",
     )
     p.add_argument("-V", "--version", action="version", version=f"BeeWeave {__version__}")
-    sub = p.add_subparsers(dest="command")
+    sub = p.add_subparsers(dest="command", parser_class=FriendlyArgumentParser)
 
     sp = sub.add_parser("setup", help="install skills into your agents and write config (default)")
     _add_setup_args(sp)
@@ -1538,7 +1615,7 @@ def build_parser() -> argparse.ArgumentParser:
     ip.set_defaults(func=cmd_info)
 
     ep = sub.add_parser("external", help="manage user-installed external agent skills")
-    external_sub = ep.add_subparsers(dest="external_command")
+    external_sub = ep.add_subparsers(dest="external_command", parser_class=FriendlyArgumentParser)
     ei = external_sub.add_parser("install", help="install an external skill from a repository or path")
     ei.add_argument("source", help="GitHub URL, git URL, owner/repo shorthand, tree URL, or local path")
     ei.add_argument("--skill", help="skill name to install from a multi-skill source")
@@ -1569,13 +1646,13 @@ def build_parser() -> argparse.ArgumentParser:
     er.set_defaults(func=cmd_external_remove)
 
     pp = sub.add_parser("profile", help="manage BeeWeave profile config files")
-    profile_sub = pp.add_subparsers(dest="profile_command")
+    profile_sub = pp.add_subparsers(dest="profile_command", parser_class=FriendlyArgumentParser)
     psd = profile_sub.add_parser("set-default", help="copy a named profile to ~/.beeweave/config")
     psd.add_argument("name", help="named profile to copy from ~/.beeweave/config.NAME")
     psd.set_defaults(func=cmd_profile_set_default)
 
     il = sub.add_parser("illustrate", help="doctor article illustration provider configuration")
-    illustrate_sub = il.add_subparsers(dest="illustrate_command")
+    illustrate_sub = il.add_subparsers(dest="illustrate_command", parser_class=FriendlyArgumentParser)
     doctor = illustrate_sub.add_parser("doctor", help="validate article illustration provider configuration")
     doctor.add_argument("--provider", required=True, choices=illustrate_doctor.SUPPORTED_PROVIDERS)
     doctor.add_argument(

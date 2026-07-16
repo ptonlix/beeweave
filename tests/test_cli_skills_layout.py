@@ -221,6 +221,49 @@ def test_setup_rejects_activate_flag():
         cli.build_parser().parse_args(["setup", "--activate"])
 
 
+def test_unknown_top_level_command_suggests_upgrade_check(capsys):
+    with pytest.raises(SystemExit) as exc:
+        cli.build_parser().parse_args(["update", "--check"])
+
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert "beeweave::cli/error" in err
+    assert "cause: unknown command 'update'" in err
+    assert "hint:  bwe upgrade --check" in err
+    assert "help:  bwe upgrade --help" in err
+    assert "invalid choice" not in err
+
+
+def test_unknown_top_level_command_without_match_shows_help(capsys):
+    with pytest.raises(SystemExit) as exc:
+        cli.build_parser().parse_args(["wat"])
+
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert "beeweave::cli/error" in err
+    assert "cause: unknown command 'wat'" in err
+    assert "help:  bwe --help" in err
+    assert "hint:" not in err
+
+
+@pytest.mark.parametrize(
+    ("command", "suggestion"),
+    [
+        ("status", "info"),
+        ("remove", "uninstall"),
+    ],
+)
+def test_unknown_top_level_command_uses_manual_suggestions(command, suggestion, capsys):
+    with pytest.raises(SystemExit) as exc:
+        cli.build_parser().parse_args([command])
+
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert f"cause: unknown command '{command}'" in err
+    assert f"hint:  bwe {suggestion}" in err
+    assert f"help:  bwe {suggestion} --help" in err
+
+
 def test_set_default_profile_copies_named_profile_and_keeps_backup(tmp_path):
     config_dir = tmp_path / ".beeweave"
     config_dir.mkdir()
