@@ -28,14 +28,28 @@ bwe uninstall
 `bwe uninstall` 会移除 BeeWeave 管理的 skills、bootstrap 文件和
 `~/.beeweave` 配置，但不会删除你的 `vault/` 或 `workbench/` 内容。
 
-## 使用 skills
+## 开始知识飞轮
 
-Setup 完成后，在支持的 Agent 中直接使用：
+Setup 完成后，在支持的 Agent 中打开这个项目：
 
 ```text
-/beeweave-ingest workbench/inbox
-/beeweave-query what do I know about rate limiting?
-/beeweave-update
+1. 获取知识
+   /beeweave-ingest <URL、文件或目录>
+
+2. 输出 · 写作飞轮
+   /beeweave-url-capture <URL>
+   /beeweave-article-writer 基于刚刚获取的内容，并结合我的知识库写一篇文章
+   /beeweave-article-publisher <草稿路径>
+
+获取 → 关联 → 创作 → 发布 → 沉淀 → 再创作
+```
+
+如果只需要在任意项目中使用知识库：
+
+```text
+/beeweave-ingest    → 将文件、目录、URL 或 inbox 内容加入知识库
+/beeweave-update    → 将项目中的长期知识同步到知识库
+/beeweave-query     → 查询知识库中的已有知识
 ```
 
 ## 源码仓库开发安装

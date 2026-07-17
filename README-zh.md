@@ -50,12 +50,26 @@ Setup 会做这些事：
 
 Setup 过程中，你会先选择是否安装 optional advanced global skills，然后选择要安装到哪些 Agent。默认全局技能保持克制，完整 BeeWeave 技能集会安装到你选择的项目本地 Agent 目录中。
 
-Setup 完成后，在 Agent 中直接使用：
+Setup 完成后，在 Agent 中打开这个项目，开始你的知识飞轮：
 
 ```text
-/beeweave-ingest workbench/inbox
-/beeweave-query what do I know about rate limiting?
-/beeweave-update
+1. 获取知识
+   /beeweave-ingest <URL、文件或目录>
+
+2. 输出 · 写作飞轮
+   /beeweave-url-capture <URL>
+   /beeweave-article-writer 基于刚刚获取的内容，并结合我的知识库写一篇文章
+   /beeweave-article-publisher <草稿路径>
+
+获取 → 关联 → 创作 → 发布 → 沉淀 → 再创作
+```
+
+如果只需要在任意项目中使用知识库：
+
+```text
+/beeweave-ingest    → 将文件、目录、URL 或 inbox 内容加入知识库
+/beeweave-update    → 将项目中的长期知识同步到知识库
+/beeweave-query     → 查询知识库中的已有知识
 ```
 
 ## 🤖 Agent 快速开始

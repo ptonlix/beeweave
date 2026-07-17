@@ -30,15 +30,28 @@ bwe uninstall
 `bwe uninstall` removes BeeWeave-managed skills, bootstrap files, and
 `~/.beeweave` config. It does not delete your `vault/` or `workbench/` content.
 
-## Use the Skills
+## Start the Knowledge Flywheel
 
-After setup, open the workspace in a supported agent and use the skills in
-natural language or command-style prompts:
+After setup, open the workspace in a supported agent:
 
 ```text
-/beeweave-ingest workbench/inbox
-/beeweave-query what do I know about rate limiting?
-/beeweave-update
+1. Capture knowledge
+   /beeweave-ingest <URL, file, or directory>
+
+2. Create · Writing flywheel
+   /beeweave-url-capture <URL>
+   /beeweave-article-writer Write an article from the captured source and my vault
+   /beeweave-article-publisher <draft-path>
+
+Capture → connect → create → publish → distill → create again
+```
+
+For knowledge-only workflows from any project:
+
+```text
+/beeweave-ingest    → add files, folders, URLs, or inbox content to your vault
+/beeweave-update    → sync durable project knowledge to your vault
+/beeweave-query     → query existing knowledge in your vault
 ```
 
 ## Source Checkout Setup

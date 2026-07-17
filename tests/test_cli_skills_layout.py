@@ -568,9 +568,16 @@ def test_setup_summary_points_to_direct_skill_usage(tmp_path, monkeypatch, capsy
     assert "Agents:" in output
     assert "Global skills:" in output
     assert "Install mode:" in output
-    assert "/beeweave-ingest workbench/inbox" in output
-    assert "/beeweave-ingest    → ingest files, folders, URLs, or workbench inbox content" in output
-    assert "/beeweave-query what do I know about ..." in output
+    assert "Start your knowledge flywheel" in output
+    assert "/beeweave-ingest <URL, file, or directory>" in output
+    assert "/beeweave-url-capture <URL>" in output
+    assert "/beeweave-article-writer Write an article from the captured source and my vault" in output
+    assert "/beeweave-article-publisher <draft-path>" in output
+    assert "Capture → connect → create → publish → distill → create again" in output
+    assert "Knowledge-only workflows from any project" in output
+    assert "/beeweave-ingest    → add files, folders, URLs, or inbox content to your vault" in output
+    assert "/beeweave-update    → sync durable project knowledge to your vault" in output
+    assert "/beeweave-query     → query existing knowledge in your vault" in output
     assert 'Say: "set up my wiki"' not in output
 
 
@@ -607,8 +614,9 @@ def test_setup_global_only_summary_omits_project_paths(tmp_path, monkeypatch, ca
     assert "Agents:" in output
     assert "Global skills:" in output
     assert "Install mode:" in output
+    assert "portable knowledge skills installed for cross-project work" in output
     assert "/beeweave-ingest /path/to/source" in output
-    assert "/beeweave-ingest    → ingest files, folders, URLs, or workbench inbox content" in output
+    assert "Knowledge-only workflows" not in output
     assert "Project:" not in output
     assert "Workbench:" not in output
 

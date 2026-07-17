@@ -72,12 +72,26 @@ the agents BeeWeave should install into. The default global skill set stays
 intentionally small, while the full BeeWeave skill set is installed
 project-locally for the agents you choose.
 
-After setup, open the project in your agent and use the skills directly:
+After setup, open the project in your agent and start your knowledge flywheel:
 
 ```text
-/beeweave-ingest workbench/inbox
-/beeweave-query what do I know about rate limiting?
-/beeweave-update
+1. Capture knowledge
+   /beeweave-ingest <URL, file, or directory>
+
+2. Create · Writing flywheel
+   /beeweave-url-capture <URL>
+   /beeweave-article-writer Write an article from the captured source and my vault
+   /beeweave-article-publisher <draft-path>
+
+Capture → connect → create → publish → distill → create again
+```
+
+For knowledge-only workflows from any project:
+
+```text
+/beeweave-ingest    → add files, folders, URLs, or inbox content to your vault
+/beeweave-update    → sync durable project knowledge to your vault
+/beeweave-query     → query existing knowledge in your vault
 ```
 
 ## 🤖 Agent Quickstart
