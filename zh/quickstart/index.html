@@ -331,16 +331,16 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#skills" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
-      使用 skills
+      开始知识飞轮
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       源码仓库开发安装
     </span>
@@ -598,16 +598,16 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#skills" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
-      使用 skills
+      开始知识飞轮
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       源码仓库开发安装
     </span>
@@ -652,16 +652,27 @@
 </code></pre></div>
 <p><code>bwe uninstall</code> 会移除 BeeWeave 管理的 skills、bootstrap 文件和
 <code>~/.beeweave</code> 配置，但不会删除你的 <code>vault/</code> 或 <code>workbench/</code> 内容。</p>
-<h2 id="skills">使用 skills<a class="headerlink" href="#skills" title="Permanent link">&para;</a></h2>
-<p>Setup 完成后，在支持的 Agent 中直接使用：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>/beeweave-ingest workbench/inbox
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>/beeweave-query what do I know about rate limiting?
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>/beeweave-update
+<h2 id="_3">开始知识飞轮<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>Setup 完成后，在支持的 Agent 中打开这个项目：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>1. 获取知识
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>   /beeweave-ingest &lt;URL、文件或目录&gt;
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>2. 输出 · 写作飞轮
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>   /beeweave-url-capture &lt;URL&gt;
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>   /beeweave-article-writer 基于刚刚获取的内容，并结合我的知识库写一篇文章
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>   /beeweave-article-publisher &lt;草稿路径&gt;
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>获取 → 关联 → 创作 → 发布 → 沉淀 → 再创作
 </code></pre></div>
-<h2 id="_3">源码仓库开发安装<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>如果只需要在任意项目中使用知识库：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/beeweave-ingest    → 将文件、目录、URL 或 inbox 内容加入知识库
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>/beeweave-update    → 将项目中的长期知识同步到知识库
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>/beeweave-query     → 查询知识库中的已有知识
+</code></pre></div>
+<h2 id="_4">源码仓库开发安装<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>如果你在修改 BeeWeave 本仓库，而不是普通使用 PyPI 包，可以执行：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bash<span class="w"> </span>setup.sh
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>uv<span class="w"> </span>run<span class="w"> </span>bwe<span class="w"> </span>info
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bash<span class="w"> </span>setup.sh
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>uv<span class="w"> </span>run<span class="w"> </span>bwe<span class="w"> </span>info
 </code></pre></div>
 <p>源码 checkout 适合开发；普通用户安装优先使用 <code>pip install beeweave</code>。</p>
 <p><img alt="快速开始终端流程" src="../../assets/quickstart-terminal-flow.png" /></p>
