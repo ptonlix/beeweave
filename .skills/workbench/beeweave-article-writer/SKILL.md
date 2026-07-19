@@ -44,6 +44,8 @@ $BEEWEAVE_WORKBENCH_PATH/writing/style/
 
 生成长文时只加载与 `article`、`all`、`methodology` 相关的 active rules、anti-patterns 和 article examples。`pending_rules.md` 只用于感知可能的学习方向，不能当作生效规则。`rejected_rules.md` 用于避免重复采纳已拒绝风格。不要因为缺少风格资产阻断草稿交付。
 
+同时读取本 skill 的 `references/humanizer_rules.md`。它是长文内置的通用反 AI 规则，优先用于局部识别和修复公式化表达。用户明确要求和 `active_style_rules.md` 的个人风格优先于这份参考；不要把这份规则写入已有 Workbench，也不要因为它缺失而阻断写作。
+
 ### 文件命名规则
 
 统一使用：
@@ -368,6 +370,8 @@ AI：按四层自检体系检查 → 输出修改建议
 - "综上所述" / "总的来说" → 换成具体的回扣句
 - "首先...其次...最后" → 用自然的转场词替代
 - "值得注意的是" / "不难发现" → 删掉，直接说
+
+补充扫描 `references/humanizer_rules.md` 中的意义拔高、宣传性语言、模糊归因、虚假范围、过度限定和通用积极结论。命中时只改写具体片段，并补充事实或明确来源；不要机械删除必要的不确定性、引用和作者判断。
 
 **L1-2 禁用标点扫描**
 全文搜索以下标点，出现则必须替换：
